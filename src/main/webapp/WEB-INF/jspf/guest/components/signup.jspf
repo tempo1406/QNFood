@@ -9,7 +9,7 @@
           <div class="flex-grow-1"></div>
           <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>                
         </div>
-        <form class="form mx-2 p-2 mx-md-4 p-md-4 mb-4" id="signup-form" method="post" action="/signup">
+        <form class="form mx-2 p-2 mx-md-4 p-md-4 mb-4" id="signup-form" method="post" action="/signup" onsubmit="return submitSignupForm(event)">
           <h1 class="text-center mb-2 mb-md-4">Đăng ký</h1>
           <div class="form-group col">
             <label class="col-form-label" for="txtAccountUsername">Tên Tài khoản Người dùng</label>
@@ -42,7 +42,7 @@
             </div>
           </div>
           <div class="form-group row px-3 my-3">
-            <button data-bs-toggle="modal" data-bs-target="#trigger-otp-modal" type="submit" class="btn btn-primary btn-lg btn-block" id="btnSubmit" name="btnSubmit" value="Submit">Đăng ký</button>
+            <button type="submit" class="btn btn-primary btn-lg btn-block" id="btnSubmit" name="btnSubmit" value="Submit">Đăng ký</button>
           </div>
 
           <!-- Sign In With Google button with HTML data attributes API -->
@@ -62,3 +62,32 @@
     </div>
   </div>
 </div>
+          
+          <script>
+function submitSignupForm(event) {
+    event.preventDefault();  // Ngăn form submit theo cách mặc định
+
+    // Ẩn modal đăng ký
+    const signupModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('signup-modal'));
+    signupModal.hide();
+
+    // Hiển thị modal OTP
+    const otpModal = new bootstrap.Modal(document.getElementById('trigger-otp-modal'));
+    otpModal.show();
+
+    // Tiến hành submit form thông qua AJAX hoặc FormData nếu cần xử lý trên server
+    const form = event.target;
+    const formData = new FormData(form);
+    fetch(form.action, {
+        method: form.method,
+        body: formData
+    }).then(response => {
+        // Xử lý phản hồi sau khi gửi form, nếu cần thiết
+    }).catch(error => {
+        console.error('Đã xảy ra lỗi:', error);
+    });
+
+    return false; // Ngăn form submit mặc định
+}
+
+</script>

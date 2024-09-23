@@ -271,21 +271,6 @@ public class CheckoutController extends HttpServlet {
             if (paymentMethod == 3) {
                 session.setAttribute("toastMessage", "success-order");
                 response.sendRedirect("/");
-            }else if (paymentMethod == 1) {
-
-                // Tạo URL cho việc gọi API
-                String apiURL = "http://psql-server:8001/payment_from_cis?cis=" + customerID;
-
-                // Thực hiện HTTP request để lấy vnpay_payment_url
-                String vnpayPaymentURL = sendGetRequest(apiURL);
-
-                if (vnpayPaymentURL != null && !vnpayPaymentURL.isEmpty()) {
-                    response.sendRedirect(vnpayPaymentURL);
-                } else {
-                    // Xử lý trường hợp không lấy được vnpay_payment_url
-                    request.setAttribute("toastMessage", "error-order-vnpay");
-                    request.getRequestDispatcher("/checkout").forward(request, response);
-                }  
             }
             
             for (CartItem item : cartItemList) {
@@ -301,56 +286,9 @@ public class CheckoutController extends HttpServlet {
         }
     }
 
-    private String sendGetRequest(String apiURL) {
-    try {
-        URL url = new URL(apiURL);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        int responseCode = connection.getResponseCode();
-
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-
-            // Parse the response and return the vnpay_payment_url
-            JSONObject obj = new JSONObject(response.toString());
-            String vnpayPaymentURL = obj.getString("vnpay_payment_url");
-            return vnpayPaymentURL;
-        } else {
-            // Xử lý trường hợp không thành công khi gọi API
-            return null;
-        }
-    } catch (IOException e) {
-        e.printStackTrace();
-        return null;
-    }
-}
-
-
     protected void doPostCheckout(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-
-        // Gets the current time in GMT+7
-        Instant instant = Instant.now();
-        ZonedDateTime zdt = instant.atZone(ZoneId.of("GMT+7"));
-        LocalDateTime currentTime = zdt.toLocalDateTime();
-        
-        // Gets the current hour in GMT+7
-        int hour = currentTime.getHour();
-        
-        if (hour >= 20 || hour <= 8) {
-          session.setAttribute("toastMessage", "error-close-time");
-          response.sendRedirect("/");
-          return;
-        } 
         
         String voucherStatus = "Vui lòng nhập mã giảm giá nếu bạn có";
         request.setAttribute("voucherStatus", voucherStatus);

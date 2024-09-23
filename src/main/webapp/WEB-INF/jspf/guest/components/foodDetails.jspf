@@ -95,86 +95,65 @@
         }
     </style>
 
+
     <script>
-        let stockQuantity = 0;
-        let quantity = 1;
-        // Initialize the modal's content whenever the user clicks on any food card
         $(document).on("click", ".stretched-link", function () {
-            let foodID = $(this).attr("data-food-id");
-            let foodType = $(this).attr("data-food-type");
-            let foodName = $(this).attr("data-food-name");
-            let foodDescription = $(this).attr("data-food-description");
-            let foodPriceOriginal = $(this).attr("data-food-price-original");
-            let foodPrice = $(this).attr("data-food-price");
-            let foodStatus = $(this).attr("data-food-status");
-            let foodRate = $(this).attr("data-food-rate");
-            let discountPercent = $(this).attr("data-discount-percent");
-            let imageURL = $(this).attr("data-image-url");
-            stockQuantity = $(this).attr("data-stock-quantity");
-            quantity = 1;
+    let foodID = $(this).attr("data-food-id");
+    let foodType = $(this).attr("data-food-type");
+    let foodName = $(this).attr("data-food-name");
+    let foodDescription = $(this).attr("data-food-description"); // Now coming from the database directly
+    let foodPriceOriginal = $(this).attr("data-food-price-original");
+    let foodPrice = $(this).attr("data-food-price");
+    let foodStatus = $(this).attr("data-food-status");
+    let foodRate = $(this).attr("data-food-rate");
+    let discountPercent = $(this).attr("data-discount-percent");
+    let imageURL = $(this).attr("data-image-url");
+    stockQuantity = $(this).attr("data-stock-quantity");
+    quantity = 1;
 
-            let modal = $("#food-details-modal");
+    let modal = $("#food-details-modal");
 
-            // Set the image of the food
-            modal.find("#food-image").attr("src", imageURL)
-                .attr("alt", foodName);
+    // Set the image of the food
+    modal.find("#food-image").attr("src", imageURL)
+        .attr("alt", foodName);
 
-            // Set the name of the food
-            modal.find("#food-name h5").text(foodName);
+    // Set the name of the food
+    modal.find("#food-name h5").text(foodName);
 
-            // Set the rating of the food
-            let stars = Array.from(modal.find(".ph-star"));
-            for (let index = 0; index < 5; index++) {
-                star = stars[index];
-                if (index < foodRate) {
-                    star.classList.remove("ph-bold");
-                    star.classList.add("ph-fill");
-                } else {
-                    star.classList.remove("ph-fill");
-                    star.classList.add("ph-bold");
-                }
-            }
+    // Set the rating of the food
+    let stars = Array.from(modal.find(".ph-star"));
+    for (let index = 0; index < 5; index++) {
+        star = stars[index];
+        if (index < foodRate) {
+            star.classList.remove("ph-bold");
+            star.classList.add("ph-fill");
+        } else {
+            star.classList.remove("ph-fill");
+            star.classList.add("ph-bold");
+        }
+    }
 
-            // Parse the food prices to float, then convert them to locale string
-            // Don't use localeParseFloat because the original price that the Java servlet returns
-            // uses a dot instead of a comma as the decimal separator, which confuses the function
-            // and return incorrect results (40000.0000 returns 400000000)
-            foodPriceOriginal = parseFloat(foodPriceOriginal).toLocaleString(pageLocale);
-            foodPrice = parseFloat(foodPrice).toLocaleString(pageLocale);
+    // Parse the food prices to float, then convert them to locale string
+    foodPriceOriginal = parseFloat(foodPriceOriginal).toLocaleString(pageLocale);
+    foodPrice = parseFloat(foodPrice).toLocaleString(pageLocale);
 
-            // Set the price of the food
-            modal.find("#food-price").text(foodPrice + " đ");
+    // Set the price of the food
+    modal.find("#food-price").text(foodPrice + " đ");
 
-            // Only set and show the original price and the discount value if the food is discounted
-            if (discountPercent > 0) {
-                modal.find("#food-price-original").html("<s>" + foodPriceOriginal + " đ</s>").removeClass("d-none");
-                modal.find("#food-discount").text("Giảm " + discountPercent + "%").removeClass("d-none");
-            } else {
-                modal.find("#food-price-original").html("").addClass("d-none");
-                modal.find("#food-discount").text("").addClass("d-none");
-            }
+    // Only set and show the original price and the discount value if the food is discounted
+    if (discountPercent > 0) {
+        modal.find("#food-price-original").html("<s>" + foodPriceOriginal + " đ</s>").removeClass("d-none");
+        modal.find("#food-discount").text("Giảm " + discountPercent + "%").removeClass("d-none");
+    } else {
+        modal.find("#food-price-original").html("").addClass("d-none");
+        modal.find("#food-discount").text("").addClass("d-none");
+    }
 
+    // Set the description directly from the data attribute
+    modal.find("#food-description").html(foodDescription);
 
-            modal.find("#food-description").html("Đang cập nhật mô tả...");
-            // Fetch the description via the fetch API
-            fetch(`http://localhost:8123/generate_description/?food_name=` + foodName)
-                .then((response) => response.json())
-                .then((data) => {
-                    if (data.description) {
-                        foodDescription = data.description;
-                    } else {
-                        foodDescription = "Description not available.";
-                    }
-                    modal.find("#food-description").html(foodDescription);
-                })
-                .catch((error) => {
-                    console.error("Error fetching description:", error);
-                    foodDescription = "Description not available.";
-                    modal.find("#food-description").html(foodDescription);
-                });
-
-
-            // Disables (but still shows) quantity input group if the food is out of stock/unavailable
+    // Handle stock and quantity updates here...
+    // Disables (but still shows) quantity input group if the food is out of stock/unavailable
             if (foodStatus === "0") {
                 let inputs = modal.find("#food-quantity input");
                 modal.find("#food-stock-quantity").text("Tạm hết món");
@@ -345,5 +324,6 @@
         $('#food-details-modal').on('hidden.bs.modal', (e) => {
             $('#food-details-modal .quantity-input').val(1);
             quantity = 1;
-        });      
-    </script>
+});
+
+        </script>

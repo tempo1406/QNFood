@@ -1,4 +1,4 @@
-﻿USE [master]
+﻿	USE [master]
 GO
 
 /*******************************************************************************
@@ -381,8 +381,6 @@ VALUES (2, N'Bánh bột lọc', N'Bánh bột lọc - một món đặc sản m
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (2, N'Bánh căn', N'Bánh căn là một món ăn Việt ngon tuyệt! Chiếc bánh nhỏ xinh, giống như chiếc đĩa mình xinh đẹp, nó chín từng tí một, ăn vào giòn rụm, thơm béo.', 35000, 30, 1, 5, 15, 'https://cdn.vatgia.com/pictures/thumb/0x0/2021/03/1616756570-lwn.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-VALUES (2, N'Bánh canh', N'Bánh canh là một món ăn truyền thống của Việt Nam, có mì to, dẻo và mịn mà bạn có thể ăn cùng nước dùng thơm lừng và các loại thịt, hải sản.', 34000, 30, 1, 5, 0, 'https://th.bing.com/th/id/OIG.UJ7hyP4iO5Y6Cqo7lU5N?pid=ImgGn');
-insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (2, N'Bánh chưng', N'Bánh chưng là một món ăn truyền thống của người Việt Nam vào dịp Tết Nguyên Đán. Bánh được làm từ gạo nếp, đậu xanh, thịt lợn và lá dong. Bánh có hình vuông, biểu tượng cho đất trời.', 40000, 10, 0, 5, 20, 'https://www.cet.edu.vn/wp-content/uploads/2020/01/banh-chung.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (2, N'Bánh cuốn', N'Bánh cuốn là một món ăn truyền thống của Việt Nam. Quàng một mảnh bánh mỏng xinh xắn xiêu từ gạo nằm nhẹ nhàng trên đĩa, kèm theo chút thịt và gia vị quen thuộc. Thơm ngon và đơn giản, một trải nghiệm ẩm thực tuyệt vời.', 20000, 20, 1, 5, 0, 'https://i.ytimg.com/vi/vR18wfdLtJE/maxresdefault.jpg');
@@ -416,8 +414,6 @@ insert into Food (food_type_id, food_name, food_description,food_price, food_lim
 VALUES (2, N'Panna Cotta', N'Panna Cotta là một món tráng miệng Ý đặc biệt tuyệt vời! Nó giống như một chiếc bánh flan mềm mại, thơm ngon, với lớp kem sữa ngọt béo đậm đà.', 25000, 35, 0, 5, 20, 'https://biancazapatka.com/wp-content/uploads/2022/12/panna-cotta-720x1008.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (2, N'Red Velvet Cake', N'Red Velvet Cake – bánh kem đỏ mịn, mềm mại và sôcôla vị. Lớp kem tươi thơm phủ trên mỗi lát bánh, khiến bạn tan chảy trong hương vị ngọt ngào, dịu nhẹ.', 44000, 20, 1, 5, 0, 'https://www.allrecipes.com/thmb/gDJ1S6ETLfWGyyWw_4A_IGhvDYE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/9295_red-velvet-cake_ddmfs_4x3_1129-a8ab17b825e3464a9a53ceeda54ff461.jpg');
-insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-VALUES (2, N'Strawberry Shortcake', N'Bánh shortcake dâu tây là một món tráng miệng tuyệt vời! Khi cắn vào, bạn sẽ cảm nhận được sự ngọt ngào của dâu tây mọng nước, kết hợp với vị béo bùi của kem tươi và độ mềm mịn của bánh.', 70000, 28, 1, 5, 5, 'https://th.bing.com/th/id/OIG.3zJBFoevyz04wpkIIDZx?pid=ImgGn');
 
 -- Sea Food
 -- Chèn các món ăn vào cơ sở dữ liệu với giá ngẫu nhiên tương ứng với thị trường ở Việt Nam
@@ -552,8 +548,6 @@ VALUES (8, N'Risotto', N'Món risotto là một món ăn Ý ngon lành, thơm ng
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (8, N'Omelette', N'Omelette là một món ăn được làm từ trứng gà đánh đều, rán chín trên chảo, có thể thêm pho mát, thịt, rau hoặc gia vị tùy ý. Omelette có hình dạng tròn, mềm và thơm ngon.', 26000, 30, 1, 5, 0, 'https://realfood.tesco.com/media/images/1400x919-Tesco-5For15-13273-RainbowOmelette-b3f0c3cc-2f15-40a7-98b1-07af0609f99e-0-1400x919.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-VALUES (8, N'Onion Rings', N'Các chiếc miếng cơm hành được cắt mỏng, chặt vàng giòn từ hành, bọc trong lớp vỏ ngoài giòn tan.', 22000, 20, 1, 5, 15, 'https://th.bing.com/th/id/OIG.tUsUxbWy2qtAgqLtbaxx?pid=ImgGn');
-insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (8, N'Poutine', N'Poutine là một món ăn ngon của Canada gồm khoai tây chiên giòn, phủ lớp phô mai nóng béo và sốt ngon tuyệt. Một món ăn đơn giản nhưng vô cùng ngon miệng.', 25000, 30, 1, 5, 0, 'https://www.seasonsandsuppers.ca/wp-content/uploads/2014/01/new-poutine-1.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (8, N'Club Sandwich', N'Bánh mì kẹp Club - một tác phẩm nghệ thuật ẩm thực với lớp mỡ tươi ngon, thịt gà thơm lừng, trứng luộc bổ dưỡng và rau sống tươi mát. Hãy thưởng thức hương vị tuyệt vời này!', 35000, 25, 1, 5, 0, 'https://www.foodandwine.com/thmb/tM060YA0Fd0UALCmPQ-5gGWyBqA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Classic-Club-Sandwich-FT-RECIPE0523-99327c9c87214026b9419b949ee13a9c.jpg');
@@ -620,23 +614,19 @@ VALUES (9, N'Falafel', N'Falafel là một món ăn Trung Đông được làm t
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (9, N'French Onion Soup', N'Một nồi súp hành hương thơm phức, đậm đà, và ngọt ngào, trên lớp phô mai tan chảy hòa quyện với hậu vị đậm đà của nước dùng. (translation: A fragrant, rich, and sweet French Onion Soup with melted cheese on top, blending harmoniously with the flavorful broth.)', 42000, 30, 1, 5, 10, 'https://www.onceuponachef.com/images/2019/02/french-onion-soup-1.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-VALUES (9, N'Frozen Yogurt', N'Frozen Yogurt là một loại kem có chứa sữa chua và đường. Nó có vị chua nhẹ, mát lạnh và béo ngậy. Bạn có thể thêm các loại topping khác nhau để tăng hương vị và dinh dưỡng.', 30000, 30, 1, 5, 0, 'https://th.bing.com/th/id/OIG.LFpbBY20Lcd.8a_h1B3J?pid=ImgGn');
-insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-VALUES (9, N'Hot and Sour Soup', N'Món súp chua cay, ấm áp và đậm đà vị. Với hương vị đặc trưng của giò lụa, nấm, hành và dấm, món này sẽ làm bạn cảm thấy sảng khoái và phấn khích.', 36000, 20, 1, 5, 0, 'https://cookwithdana.com/wp-content/uploads/2021/11/IMG_2866-scaled.jpg');
-insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (9, N'Macaroni and Cheese', N'Macaroni and Cheese là một món ăn ngon miệng với sợi mỳ mềm mịn bên trong, được bao phủ bởi lớp phô mai béo ngậy. Một món ăn đơn giản nhưng thơm ngon và đúng gu ẩm thực.', 32000, 9, 1, 5, 15, 'https://upload.wikimedia.org/wikipedia/commons/4/44/Original_Mac_n_Cheese_.jpg');
 insert into Food (food_type_id, food_name, food_description,food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
 VALUES (9, N'Miso Soup', N'Miso Soup là món canh thơm ngon của Nhật Bản, có vị mặn nhẹ, hòa quyện với hương thơm của nấm, tảo và đậu nành.', 35000, 5, 0, 5, 10, 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Miso_Soup_001.jpg/1200px-Miso_Soup_001.jpg');
 
 -- Drinks
 insert into Food (food_type_id, food_name, food_description, food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-values (10, N'Coca-Cola (330ml)', N'Coca-Cola là một loại nước ngọt có ga phổ biến trên toàn thế giới. Với hương vị đặc trưng, ngọt ngào và sảy ngon, Coca-Cola thường được phục vụ lạnh và kèm theo đá.', 12000, 500, 1,5, 0, 'https://drive.google.com/uc?id=14_GTRoOdBs5zuU4VwnzftPsqtdEeW1xP');
+values (10, N'Coca-Cola (330ml)', N'Coca-Cola là một loại nước ngọt có ga phổ biến trên toàn thế giới. Với hương vị đặc trưng, ngọt ngào và sảy ngon, Coca-Cola thường được phục vụ lạnh và kèm theo đá.', 12000, 500, 1,5, 0, 'https://www.coca-cola.com/content/dam/onexp/vn/home-image/coca-cola/Coca-Cola_OT%20320ml_VN-EX_Desktop.png');
 insert into Food (food_type_id, food_name, food_description, food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-values (10, N'7 Up (330ml)', N'7 Up là một loại nước ngọt có ga với hương vị chanh mát lạnh. Được sản xuất từ các thành phần tự nhiên, 7 Up thường là lựa chọn tuyệt vời để giải khát trong những ngày nắng nóng.', 12000, 200, 1,5, 0, 'https://drive.google.com/uc?id=1HxLmW1x2aNiZBmKYGps8hXksinGIl7rv');
+values (10, N'7 Up (330ml)', N'7 Up là một loại nước ngọt có ga với hương vị chanh mát lạnh. Được sản xuất từ các thành phần tự nhiên, 7 Up thường là lựa chọn tuyệt vời để giải khát trong những ngày nắng nóng.', 12000, 200, 1,5, 0, 'https://product.hstatic.net/1000301274/product/_10100996__7up_320ml_sleek_lon_0366766c074a4b538595ed8d91dc6b0d_1024x1024.png');
 insert into Food (food_type_id, food_name, food_description, food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-values (10, N'Trà đào', N'Trà Đào là một loại trà trái cây ngon mát, được làm từ trà đen pha chế cùng với hương vị tự nhiên và ngọt ngọt của đào. Một lựa chọn tuyệt vời để giải nhiệt và thư giãn trong ngày nắng nóng.', 20000, 300, 1,4, 0, 'https://drive.google.com/uc?id=1RgBDS_wk1SmUfxMujGQSYMl-uOy8qob3');
+values (10, N'Trà đào', N'Trà Đào là một loại trà trái cây ngon mát, được làm từ trà đen pha chế cùng với hương vị tự nhiên và ngọt ngọt của đào. Một lựa chọn tuyệt vời để giải nhiệt và thư giãn trong ngày nắng nóng.', 20000, 300, 1,4, 0, 'https://file.hstatic.net/200000684957/article/tra-dao_e022b1a9ac564ee186007875701ac643.jpg');
 insert into Food (food_type_id, food_name, food_description, food_price, food_limit, food_status, food_rate, discount_percent, food_img_url)  
-values (10, N'Trà chanh dây', N'Trà Chanh Dây là một loại trà trái cây tươi ngon, được làm từ trà xanh pha chế cùng với hương vị chua chua ngọt ngọt của chanh dây. Một lựa chọn sức khỏe và thưởng thức tuyệt vời cho mọi ngày.', 20000, 200, 1, 5, 0, 'https://drive.google.com/uc?id=1Cj22ZH1a79m9zz4oKmB-ZhMZuxd24qCx');
+values (10, N'Trà chanh dây', N'Trà Chanh Dây là một loại trà trái cây tươi ngon, được làm từ trà xanh pha chế cùng với hương vị chua chua ngọt ngọt của chanh dây. Một lựa chọn sức khỏe và thưởng thức tuyệt vời cho mọi ngày.', 20000, 200, 1, 5, 0, 'https://horecavn.com/wp-content/uploads/2024/05/luc-tra-chanh-day-ly-500ml_20240527104903.png');
 
 -- Payment methods
 insert into PaymentMethod (payment_method) values (N'Thẻ tín dụng');

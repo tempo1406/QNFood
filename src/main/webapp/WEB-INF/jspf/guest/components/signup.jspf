@@ -45,8 +45,8 @@
             <button type="submit" class="btn btn-primary btn-lg btn-block" id="btnSubmit" name="btnSubmit" value="Submit">Đăng ký</button>
           </div>
 
-          <!-- Sign In With Google button with HTML data attributes API -->
-          <%@ include file="buttons/googleSignUpButton.jspf" %>
+        
+        
 
           <div class="mt-4 text-center">
             Bạn đã có tài khoản? 

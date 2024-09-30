@@ -44,17 +44,14 @@
           <div class="form-group row px-3 my-3">
             <button type="submit" class="btn btn-primary btn-lg btn-block" id="btnSubmit" name="btnSubmit" value="Submit">Đăng ký</button>
           </div>
-
-        
-        
-
+     
           <div class="mt-4 text-center">
             Bạn đã có tài khoản? 
             <a href=""
                class="fw-bold text-decoration-underline link-primary"
                data-bs-toggle="modal"
                data-bs-target="#login-modal">
-              Đăng nhập tại đây
+              Đăng nhập tại đây.
             </a>
           </div>
         </form>

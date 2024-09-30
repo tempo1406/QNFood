@@ -214,33 +214,33 @@ USE qnfood
 GO
 
 --Set status of food = 0 if limit = 0
-CREATE TRIGGER tr_UpdateFoodStatus
-ON Food
-AFTER UPDATE
-AS
-BEGIN
-    IF UPDATE(food_limit)
-    BEGIN
-        UPDATE Food
-        SET food_status = 0
-        WHERE food_limit = 0;
-    END
-END;
+--CREATE TRIGGER tr_UpdateFoodStatus
+--ON Food
+--AFTER UPDATE
+--AS
+--BEGIN
+--    IF UPDATE(food_limit)
+--    BEGIN
+--        UPDATE Food
+--        SET food_status = 0
+--        WHERE food_limit = 0;
+--    END
+--END;
 
-GO
+--GO
 
 -- Inactivate food when delete
-CREATE TRIGGER tr_InactivateFood
-ON Food
-INSTEAD OF DELETE
-AS
-BEGIN
-    UPDATE Food
-    SET food_status = 0
-    WHERE food_id IN (SELECT food_id FROM deleted);
-END;
+--CREATE TRIGGER tr_InactivateFood
+--ON Food
+--INSTEAD OF DELETE
+--AS
+--BEGIN
+--    UPDATE Food
+--    SET food_status = 0
+--    WHERE food_id IN (SELECT food_id FROM deleted);
+--END;
 
-GO
+--GO
 
 -- Remove cart after customer deleted
 CREATE TRIGGER tr_delete_cart_links

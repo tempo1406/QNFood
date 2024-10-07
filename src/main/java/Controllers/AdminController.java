@@ -41,7 +41,6 @@ import org.json.JSONObject;
 
 public class AdminController extends HttpServlet {
     
-    // send request function
     private String sendGetRequest(String apiURL) {
         try {
             URL url = new URL(apiURL);

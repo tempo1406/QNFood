@@ -80,8 +80,6 @@
               Đăng nhập
             </button>
           </div>
-          <!-- Sign In With Google button with HTML data attributes API -->
-          <%@ include file="buttons/googleSignInButton.jspf" %>
 
           <div class="mt-4 text-center">
             Bạn chưa có tài khoản?

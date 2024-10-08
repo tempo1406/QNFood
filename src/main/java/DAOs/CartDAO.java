@@ -106,24 +106,7 @@ public class CartDAO {
       Logger.getLogger(CartDAO.class.getName()).log(Level.SEVERE, null, ex);
     }
     return result;
-  }
-   
-           public static void main(String[] args) {
-        CartDAO cartDAO = new CartDAO();
-
-        // Tạo một đối tượng Cart mới
-        Cart cart = new Cart(1,1); // Ví dụ: customer_id = 1
-
-        // Thử thêm Cart vào cơ sở dữ liệu
-        int result = cartDAO.add(cart);
-
-        if (result > 0) {
-            System.out.println("Thêm Cart thành công. Số hàng bị ảnh hưởng: " + result);
-        } else {
-            System.out.println("Thêm Cart thất bại.");
-        }
-    }      
-          
+  }          
 }
     
 

@@ -14,7 +14,7 @@ public class DBConnection {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             try {
-                conn = DriverManager.getConnection("jdbc:sqlserver://localhost;databaseName=qnfood;user=sa;password=123456;encrypt=true;trustServerCertificate=true");
+                conn = DriverManager.getConnection("jdbc:sqlserver://localhost;databaseName=qnfood;user=sa;password=123;encrypt=true;trustServerCertificate=true");
             } catch (SQLException ex) {
                 Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
             }

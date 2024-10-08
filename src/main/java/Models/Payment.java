@@ -15,27 +15,24 @@ public class Payment {
     private String payment_content;
     private String payment_bank;
     private String payment_code;
-    private byte payment_status;
     private Timestamp payment_time;
 
-    public Payment(int order_id, byte payment_method_id, BigDecimal payment_total,String payment_content, String payment_bank, String payment_code, byte payment_status, Timestamp payment_time) {
+    public Payment(int order_id, byte payment_method_id, BigDecimal payment_total,String payment_content, String payment_bank, String payment_code, Timestamp payment_time) {
         this.order_id = order_id;
         this.payment_method_id = payment_method_id;
         this.payment_total = payment_total;
         this.payment_content = payment_content;
         this.payment_bank = payment_bank;
         this.payment_code = payment_code;
-        this.payment_status = payment_status;
         this.payment_time = payment_time;
     }
     
-    public Payment(int order_id, byte payment_method_id, String payment_content, String payment_bank, String payment_code, byte payment_status, Timestamp payment_time) {
+    public Payment(int order_id, byte payment_method_id, String payment_content, String payment_bank, String payment_code, Timestamp payment_time) {
         this.order_id = order_id;
         this.payment_method_id = payment_method_id;
         this.payment_content = payment_content;
         this.payment_bank = payment_bank;
         this.payment_code = payment_code;
-        this.payment_status = payment_status;
         this.payment_time = payment_time;
     }
 
@@ -85,14 +82,6 @@ public class Payment {
 
     public void setPayment_code(String payment_code) {
         this.payment_code = payment_code;
-    }
-
-    public byte getPayment_status() {
-        return payment_status;
-    }
-
-    public void setPayment_status(byte payment_status) {
-        this.payment_status = payment_status;
     }
 
     public Timestamp getPayment_time() {

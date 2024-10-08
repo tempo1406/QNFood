@@ -51,7 +51,6 @@ public class PaymentDAO {
                         rs.getString("payment_content"), 
                         rs.getString("payment_bank"), 
                         rs.getString("payment_code"), 
-                        rs.getByte("payment_status") ,
                         rs.getTimestamp("payment_date")
                 );
             }
@@ -73,7 +72,6 @@ public class PaymentDAO {
                         rs.getString("payment_content"), 
                         rs.getString("payment_bank"), 
                         rs.getString("payment_code"), 
-                        rs.getByte("payment_status") ,
                         rs.getTimestamp("payment_date")
                 );       
                 paymentList.add(payment);
@@ -95,8 +93,7 @@ public class PaymentDAO {
             ps.setString(4, payment.getPayment_content());
             ps.setString(5, payment.getPayment_bank());
             ps.setString(6, payment.getPayment_code());
-            ps.setByte(7, payment.getPayment_status());
-            ps.setTimestamp(8, payment.getPayment_time());
+            ps.setTimestamp(7, payment.getPayment_time());
             result = ps.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PaymentDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -113,8 +110,7 @@ public class PaymentDAO {
             ps.setByte(2, payment.getPayment_method_id());
             ps.setBigDecimal(3, payment.getPayment_total());
             ps.setString(4, payment.getPayment_content());
-            ps.setByte(5, payment.getPayment_status());
-            ps.setTimestamp(6, payment.getPayment_time());
+            ps.setTimestamp(5, payment.getPayment_time());
             result = ps.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PaymentDAO.class.getName()).log(Level.SEVERE, null, ex);
@@ -145,9 +141,8 @@ public class PaymentDAO {
             ps.setString(3, payment.getPayment_content());
             ps.setString(4, payment.getPayment_bank());
             ps.setString(5, payment.getPayment_code());
-            ps.setByte(6, payment.getPayment_status());
-            ps.setTimestamp(7, payment.getPayment_time());
-            ps.setInt(8, payment.getOrder_id());
+            ps.setTimestamp(6, payment.getPayment_time());
+            ps.setInt(7, payment.getOrder_id());
             result = ps.executeUpdate();
         } catch (SQLException ex) {
             Logger.getLogger(PaymentDAO.class.getName()).log(Level.SEVERE, null, ex);

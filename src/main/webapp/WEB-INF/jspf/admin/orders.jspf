@@ -43,7 +43,6 @@
                     <th>Các món đặt</th>
                     <th>Ghi chú</th>                          
                     <th>Thanh toán</th> 
-                    <th>Trạng thái TT</th> 
                     <th>Trạng thái ÐH</th>
                     <th>Thời gian đặt</th>
                 </tr>
@@ -72,7 +71,6 @@
                     </td>
                     <td>${(o.orderNote == null) ? "" : o.orderNote}</td>        
                     <td><fmt:formatNumber type="number" pattern="###,###" value="${o.orderTotal}"/>đ</td>
-                    <td> ${o.paymentMethod eq 'COD' ? '' : o.payment_status} </td>
                     <td> ${o.orderStatus} </td>
                     <td class="text-wrap">
                       <fmt:formatDate value="${o.orderTime}" pattern="HH:mm dd/MM/yyyy"/>

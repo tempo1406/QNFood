@@ -418,17 +418,5 @@ public class OrderDAO {
         }
         return result;
     }
-
-    public static void main(String[] args) throws ParseException {
-        OrderDAO a = new OrderDAO();
-        String dateString = "2023-07-15 10:30:00";
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-        java.util.Date parsedDate = dateFormat.parse(dateString);
-        Timestamp timestamp = new Timestamp(parsedDate.getTime());
-        System.out.println("Chuỗi đã chuyển đổi thành Timestamp: " + timestamp);
-
-        a.add(new Order(1, 1, (byte) 2, (byte) 3, "0123123123", "ca mau", timestamp, "cac le", timestamp));
-    }
     
 }

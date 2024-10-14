@@ -36,7 +36,7 @@ public class OrderLogDAO {
         }
         return null;
     }
-    
+
     public ResultSet getAllByID(int id) {
         String sql = "select * from OrderLog where order_id = ?";
         try {
@@ -64,7 +64,7 @@ public class OrderLogDAO {
         }
         return log;
     }
-    
+
     public OrderLog getOrderLogByOrderID(int id) {
         OrderLog log = null;
         try {
@@ -79,18 +79,18 @@ public class OrderLogDAO {
         }
         return log;
     }
-    
+
     public List<OrderLog> getAllList() {
         ResultSet rs = this.getAll();
         List<OrderLog> logList = new ArrayList<>();
         try {
             while (rs.next()) {
                 OrderLog log = new OrderLog(
-                        rs.getInt("log_id"), 
-                        rs.getInt("order_id"), 
-                        rs.getByte("staff_id"), 
-                        rs.getByte("admin_id"), 
-                        rs.getString("log_activity"), 
+                        rs.getInt("log_id"),
+                        rs.getInt("order_id"),
+                        rs.getByte("staff_id"),
+                        rs.getByte("admin_id"),
+                        rs.getString("log_activity"),
                         rs.getTimestamp("log_time")
                 );
                 logList.add(log);
@@ -100,18 +100,18 @@ public class OrderLogDAO {
         }
         return logList;
     }
-    
+
     public List<OrderLog> getAllListByOrderID(int id) {
         ResultSet rs = this.getAllByID(id);
         List<OrderLog> logList = new ArrayList<>();
         try {
             while (rs.next()) {
                 OrderLog log = new OrderLog(
-                        rs.getInt("log_id"), 
-                        rs.getInt("order_id"), 
-                        rs.getByte("staff_id"), 
-                        rs.getByte("admin_id"), 
-                        rs.getString("log_activity"), 
+                        rs.getInt("log_id"),
+                        rs.getInt("order_id"),
+                        rs.getByte("staff_id"),
+                        rs.getByte("admin_id"),
+                        rs.getString("log_activity"),
                         rs.getTimestamp("log_time")
                 );
                 logList.add(log);
@@ -137,7 +137,7 @@ public class OrderLogDAO {
         }
         return result;
     }
-    
+
     public int addStaffLog(OrderLog log) {
         String sql = "insert into OrderLog (order_id, staff_id, log_activity, log_time) values (?,?,?,?)";
         int result = 0;
@@ -171,7 +171,7 @@ public class OrderLogDAO {
         String sql = "update OrderLog set order_id = ?, staff_id = ?,admin_id = ?, log_activity = ?, log_time = ?";
         int result = 0;
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);         
+            PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, log.getOrder_id());
             ps.setByte(2, log.getStaff_id());
             ps.setByte(3, log.getAdmin_id());

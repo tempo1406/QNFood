@@ -1,11 +1,35 @@
 <%@ page pageEncoding="UTF-8" %>
 <div class="tab-pane fade" id="home">
-  <%--Dynamically generates appropriate greeting based on time of day--%> <%
-  java.util.Calendar cal = java.util.Calendar.getInstance(); int hour =
-  cal.get(java.util.Calendar.HOUR_OF_DAY); String greeting = ""; if (hour >= 4
-  && hour < 11) { greeting = "Chào buổi sáng"; } else if (hour >= 11 && hour <
-  14) { greeting = "Chào buổi trưa"; } else if (hour >= 14 && hour < 18) {
-  greeting = "Chào buổi chiều"; } else { greeting = "Chào buổi tối"; } %>
-  <p class="fw-bolder fs-3 mb-4"><%= greeting %>, ${adminName}!</p>
-
+    <%--Dynamically generates appropriate greeting based on time of day--%> <%
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int hour
+                = cal.get(java.util.Calendar.HOUR_OF_DAY);
+        String greeting = "";
+        if (hour >= 4
+                && hour < 11) {
+            greeting = "Chào buổi sáng";
+        } else if (hour >= 11 && hour
+                < 14) {
+            greeting = "Chào buổi trưa";
+        } else if (hour >= 14 && hour < 18) {
+          greeting = "Chào buổi chiều";
+      } else {
+          greeting = "Chào buổi tối";
+      }%>
+    <p class="fw-bolder fs-3 mb-4"><%= greeting%>, ${adminName}!</p>
+    <div id="hero-carousel" class="carousel slide carousel-fade">
+        <div class="carousel-inner">
+            <div class="carousel-item active" data-bs-interval="1000">
+                <section class="py-5 overflow-hidden bg-primary80" id="home">
+                    <div class="container">
+                        <div class="row flex-center">
+                            <div class="col-md-5 col-lg-6 order-0 order-md-1 mt-4 mt-md-2">
+                                <img class="img-fluid" src="assets/img/gallery/hero-header.png" alt="hero-header" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
 </div>

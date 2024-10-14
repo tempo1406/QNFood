@@ -87,15 +87,6 @@ public class StaffController extends HttpServlet {
         for (int i = 0; i < orderList.size(); i++) {
             String Orderfirstname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getFirstName();
             String Orderlastname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getLastName();
-            String payment_status = "Chưa thanh toán";
-            // Tạo URL cho việc gọi API
-            String apiURL = "http://psql-server:8001/check_order_payment/" + orderList.get(i).getOrderID();
-            // Thực hiện HTTP request để lấy vnpay_payment_url            
-            String payment_time = sendGetRequest(apiURL);
-            if (payment_time != null) {
-                payment_status = "Đã thanh toán";
-            }
-            orderList.get(i).setPayment_status(payment_status);
             orderList.get(i).setFirstname(Orderfirstname);
             orderList.get(i).setLastname(Orderlastname);
         }
@@ -223,7 +214,7 @@ public class StaffController extends HttpServlet {
             paymentMethodID = 1;
         } else if (paymentmethod.equals("Thẻ ghi nợ")) {
             paymentMethodID = 2;
-        }
+        } 
         OrderDAO orderDAO = new OrderDAO();
         Order order = new Order(orderID, orderStatusID, paymentMethodID, phonenumber, address, note, orderTotalPay);
 

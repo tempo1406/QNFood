@@ -118,6 +118,10 @@ const toastDetails = {
     title: "Không thể cập nhật vai trò",
     message: "Đã có lỗi hệ thống xảy ra.",
   },
+//  "error-delete-log" : {
+//    title: "Không thể xóa Order Log",
+//    message: "Đã có lỗi hệ thống xảy ra.",
+//  },
   "error-delete-role": {
     title: "Không thể xoá vai trò",
     message: "Đã có lỗi hệ thống xảy ra.",

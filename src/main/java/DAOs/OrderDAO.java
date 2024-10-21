@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAOs;
 
 import DBConnection.DBConnection;
@@ -204,7 +200,7 @@ public class OrderDAO {
         }
         return result;
     }
-    
+
     public int updateForAdmin(Order order) {
         String sql = "UPDATE [Order] SET order_status_id = ?, payment_method_id = ?, contact_phone = ?, delivery_address = ?, order_total = ?, order_note = ? WHERE order_id = ?";
         int result = 0;
@@ -329,52 +325,118 @@ public class OrderDAO {
         }
         return orderItems;
     }
-    
-    
+
     public int delete(int id) {
         int result = 0;
-        String sql = "delete from [Order] where order_id=?";
+        String deleteOrderLogSQL = "DELETE FROM OrderLog WHERE order_id = ?";
+        String deleteOrderSQL = "DELETE FROM [Order] WHERE order_id = ?";
+
+        PreparedStatement psOrderLog = null;
+        PreparedStatement psOrder = null;
+
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setInt(1, id);
-            result = ps.executeUpdate();
+            // Start transaction
+            conn.setAutoCommit(false);
+
+            // Delete from OrderLog first
+            psOrderLog = conn.prepareStatement(deleteOrderLogSQL);
+            psOrderLog.setInt(1, id);
+            psOrderLog.executeUpdate();
+
+            // Delete from Orders table
+            psOrder = conn.prepareStatement(deleteOrderSQL);
+            psOrder.setInt(1, id);
+            result = psOrder.executeUpdate();
+
+            conn.commit();
         } catch (SQLException ex) {
-            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return result;
-    }
-    
-    public int deleteMultiple(List<Integer> orderIDs) {
-        int result = 0;
-        try {
-            conn.setAutoCommit(false); // Start transaction
-            for (Integer orderID : orderIDs) {
-                if (delete(orderID) == 1) {
-                    result++; // Count number of successful deletions
-                } else {
-                    conn.rollback(); // Rollback transaction if deletion fails
-                    return 0;
-                }
-            }
-            conn.commit(); // Commit transaction if all deletions succeed
-        } catch (SQLException ex) {
-            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error deleting order " + id, ex);
             try {
-                conn.rollback(); // Rollback transaction if any exception occurs
+                if (conn != null) {
+                    conn.rollback();
+                }
             } catch (SQLException rollbackEx) {
-                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, rollbackEx);
+                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error during rollback", rollbackEx);
             }
-            return 0;
+            throw new RuntimeException("Failed to delete order: " + id, ex);
         } finally {
             try {
-                conn.setAutoCommit(true); // Reset auto commit
+                if (psOrderLog != null) {
+                    psOrderLog.close();
+                }
+                if (psOrder != null) {
+                    psOrder.close();
+                }
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                }
             } catch (SQLException finalEx) {
-                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, finalEx);
+                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error in cleanup", finalEx);
             }
         }
         return result;
     }
-    
+
+    public int deleteMultiple(List<Integer> orderIDs) {
+        if (orderIDs == null || orderIDs.isEmpty()) {
+            return 0;
+        }  
+
+        int result = 0;
+        try {
+            conn.setAutoCommit(false);
+
+            // Use batch processing for better performance
+            String deleteOrderLogSQL = "DELETE FROM OrderLog WHERE order_id = ?";
+            String deleteOrderSQL = "DELETE FROM [Order] WHERE order_id = ?";
+
+            try (PreparedStatement psOrderLog = conn.prepareStatement(deleteOrderLogSQL); PreparedStatement psOrder = conn.prepareStatement(deleteOrderSQL)) {
+
+                for (Integer orderID : orderIDs) {
+                    // Delete from OrderLog
+                    psOrderLog.setInt(1, orderID);
+                    psOrderLog.addBatch();
+
+                    // Delete from Order
+                    psOrder.setInt(1, orderID);
+                    psOrder.addBatch();
+                }
+
+                // Execute batches
+                psOrderLog.executeBatch();
+                int[] deleteResults = psOrder.executeBatch();
+
+                // Count successful deletions
+                for (int deleteResult : deleteResults) {
+                    if (deleteResult > 0) {
+                        result++;
+                    }
+                }
+
+                conn.commit();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error in batch deletion", ex);
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException rollbackEx) {
+                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error during rollback", rollbackEx);
+            }
+            throw new RuntimeException("Failed to delete multiple orders", ex);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                }
+            } catch (SQLException finalEx) {
+                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error resetting auto-commit", finalEx);
+            }
+        }
+        return result;
+    }
+
     public int updateOrderStatus(int order_id) {
         String sql = "UPDATE [Order] SET order_status_id = order_status_id + 1 WHERE order_id = ?";
         int result = 0;
@@ -387,7 +449,7 @@ public class OrderDAO {
         }
         return result;
     }
-    
+
     public int changeStatusMultiple(List<Integer> orderIDs) {
         int result = 0;
         try {
@@ -418,5 +480,5 @@ public class OrderDAO {
         }
         return result;
     }
-    
+
 }

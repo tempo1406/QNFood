@@ -185,18 +185,18 @@ create table [Order] (
 
 GO
 
-create table Payment (
-    order_id                int not null foreign key references [Order](order_id),
-    payment_method_id       tinyint not null foreign key references PaymentMethod(payment_method_id),
-    payment_total           money not null,
-    payment_content         nvarchar(1023) null,
-    payment_bank            nvarchar(50) null,
-    payment_code            varchar(20) null,
+--create table Payment (
+--    order_id                int not null foreign key references [Order](order_id),
+--    payment_method_id       tinyint not null foreign key references PaymentMethod(payment_method_id),
+--    payment_total           money not null,
+--    payment_content         nvarchar(1023) null,
+--    payment_bank            nvarchar(50) null,
+--    payment_code            varchar(20) null,
 --    payment_status          tinyint not null,
-    payment_time            datetime not null
-);
+--    payment_time            datetime not null
+--);
 
-GO
+--GO
 
 create table OrderLog (
     log_id				int identity(1,1) not null primary key,

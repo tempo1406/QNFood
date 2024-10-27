@@ -104,10 +104,6 @@
         <servlet-name>PromotionManagerController</servlet-name>
         <servlet-class>Controllers.PromotionManagerController</servlet-class>
     </servlet>
-    <servlet>
-        <servlet-name>DailyTask</servlet-name>
-        <servlet-class>DailyTask.DailyTask</servlet-class>
-    </servlet>
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/*/assets/*</url-pattern>
@@ -223,18 +219,6 @@
     <servlet-mapping>
         <servlet-name>StaffController</servlet-name>
         <url-pattern>/staff/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>PromotionManagerController</servlet-name>
-        <url-pattern>/promotionManager</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>PromotionManagerController</servlet-name>
-        <url-pattern>/promotionManager/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>DailyTask</servlet-name>
-        <url-pattern>/dailyTask</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

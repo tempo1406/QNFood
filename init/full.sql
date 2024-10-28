@@ -185,18 +185,18 @@ create table [Order] (
 
 GO
 
-create table Payment (
-    order_id                int not null foreign key references [Order](order_id),
-    payment_method_id       tinyint not null foreign key references PaymentMethod(payment_method_id),
-    payment_total           money not null,
-    payment_content         nvarchar(1023) null,
-    payment_bank            nvarchar(50) null,
-    payment_code            varchar(20) null,
-    payment_status          tinyint not null,
-    payment_time            datetime not null
-);
+--create table Payment (
+--    order_id                int not null foreign key references [Order](order_id),
+--    payment_method_id       tinyint not null foreign key references PaymentMethod(payment_method_id),
+--    payment_total           money not null,
+--    payment_content         nvarchar(1023) null,
+--    payment_bank            nvarchar(50) null,
+--    payment_code            varchar(20) null,
+--    payment_status          tinyint not null,
+--    payment_time            datetime not null
+--);
 
-GO
+--GO
 
 create table OrderLog (
     log_id				int identity(1,1) not null primary key,
@@ -648,56 +648,4 @@ insert into Voucher (voucher_name, voucher_code, voucher_discount_percent, vouch
 insert into Voucher (voucher_name, voucher_code, voucher_discount_percent, voucher_quantity, voucher_status, voucher_date) values ( N'Ngày Nhà giáo Việt Nam', '9JADYEDYOQM8E7OA', 15, 10, 0,'20241121 00:01:00 AM');
 insert into Voucher (voucher_name, voucher_code, voucher_discount_percent, voucher_quantity, voucher_status, voucher_date) values (N'Quà tặng Noel', 'DUEMAHWOPUNH62GH', 20, 10, 1,'20241223 00:01:00 AM' );
 
--- Cart, CartItem, Order test data
-insert into Cart (customer_id) values (1);
-
-insert into CartItem (cart_id, food_id, food_price, food_quantity) values (1, 2, 50000, 2);
-insert into CartItem (cart_id, food_id, food_price, food_quantity) values (1, 10, 30000, 1);
-insert into CartItem (cart_id, food_id, food_price, food_quantity) values (1, 23, 20000, 3);
-
--- Insert an Order for the Cart
-insert into [Order] (
-cart_id, customer_id ,order_status_id, payment_method_id,
-contact_phone, delivery_address, order_time, order_total, 
-order_note, delivery_time, order_cancel_time
-) values (
-1, 1, 4, 1, 
-'0931278397', N'314 Ngô Mây, Quy Nhơn, Bình Định', '20241108 10:49:00 AM', 190000, 
-NULL, '20241108 10:49:00 AM', NULL);
-
-insert into Payment (
-    order_id, payment_method_id, payment_total, payment_content, payment_bank, payment_code, payment_status, payment_time
-) values (
-    1,1,190000,N'Thanh toán đơn hàng qnfood',N'NCB','14111641',1,'20241108 11:20:00 AM'
-);
-
-update Account set lastime_order = '20241108 10:34:00 AM' where account_id = 201
-
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (1, 1, N'Cập nhật thông tin đơn hàng','20241108 10:51:00 AM');
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (1, 1, N'Cập nhật trạng thái đơn hàng','20241108 11:03:00 AM');
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (1, 2, N'Cập nhật trạng thái đơn hàng','20241108 11:18:00 AM');
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (1, 3, N'Cập nhật trạng thái đơn hàng','20241108 11:20:00 AM');
-
--- Cart, CartItem, Order test data
-insert into Cart (customer_id) values (2);
-
-insert into CartItem (cart_id, food_id, food_price, food_quantity) values (2, 5, 40000, 2);
-insert into CartItem (cart_id, food_id, food_price, food_quantity) values (2, 14, 25000, 3);
-insert into CartItem (cart_id, food_id, food_price, food_quantity) values (2, 23, 20000, 3);
-
--- Insert an Order for the Cart
-insert into [Order] (
-cart_id, customer_id ,order_status_id, payment_method_id,
-contact_phone, delivery_address, order_time, order_total, 
-order_note, delivery_time, order_cancel_time
-) values (
-2, 5, 4, 3, 
-'0931278397', N'43 Nguyễn Huệ, Quy Nhơn, Bình Định', '20241108 15:43:00 PM', 215000, 
-NULL, '20241108 15:43:00 PM', NULL);
-
-update Account set lastime_order = '20241108 15:43:00 PM' where account_id = 205
-
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (2, 1, N'Cập nhật trạng thái đơn hàng','20241108 15:50:00 PM');
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (2, 2, N'Cập nhật trạng thái đơn hàng','20241108 16:05:00 PM');
-insert into OrderLog (order_id, staff_id, log_activity, log_time) values (2, 3, N'Cập nhật trạng thái đơn hàng','20241108 16:20:00 PM');
 

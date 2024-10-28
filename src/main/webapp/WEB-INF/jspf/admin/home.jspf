@@ -12,10 +12,10 @@
                 < 14) {
             greeting = "Chào buổi trưa";
         } else if (hour >= 14 && hour < 18) {
-          greeting = "Chào buổi chiều";
-      } else {
-          greeting = "Chào buổi tối";
-      }%>
+            greeting = "Chào buổi chiều";
+        } else {
+            greeting = "Chào buổi tối";
+        }%>
     <p class="fw-bolder fs-3 mb-4"><%= greeting%>, ${adminName}!</p>
     <div id="hero-carousel" class="carousel slide carousel-fade">
         <div class="carousel-inner">

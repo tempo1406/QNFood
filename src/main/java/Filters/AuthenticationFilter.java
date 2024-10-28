@@ -37,6 +37,27 @@ public class AuthenticationFilter implements Filter {
     if (debug) {
       log("AuthenticationFilter:DoBeforeProcessing");
     }
+
+    // Write code here to process the request and/or response before
+    // the rest of the filter chain is invoked.
+    // For example, a logging filter might log items on the request object,
+    // such as the parameters.
+    /*
+	for (Enumeration en = request.getParameterNames(); en.hasMoreElements(); ) {
+	    String name = (String)en.nextElement();
+	    String values[] = request.getParameterValues(name);
+	    int n = values.length;
+	    StringBuffer buf = new StringBuffer();
+	    buf.append(name);
+	    buf.append("=");
+	    for(int i=0; i < n; i++) {
+	        buf.append(values[i]);
+	        if (i < n-1)
+	            buf.append(",");
+	    }
+	    log(buf.toString());
+	}
+     */
   }
 
   private void doAfterProcessing(ServletRequest request, ServletResponse response)
@@ -44,6 +65,24 @@ public class AuthenticationFilter implements Filter {
     if (debug) {
       log("AuthenticationFilter:DoAfterProcessing");
     }
+
+    // Write code here to process the request and/or response after
+    // the rest of the filter chain is invoked.
+    // For example, a logging filter might log the attributes on the
+    // request object after the request has been processed. 
+    /*
+	for (Enumeration en = request.getAttributeNames(); en.hasMoreElements(); ) {
+	    String name = (String)en.nextElement();
+	    Object value = request.getAttribute(name);
+	    log("attribute: " + name + "=" + value.toString());
+
+	}
+     */
+    // For example, a filter might append something to the response.
+    /*
+	PrintWriter respOut = new PrintWriter(response.getWriter());
+	respOut.println("<P><B>This has been appended by an intrusive filter.</B>");
+     */
   }
 
   /**
@@ -122,6 +161,36 @@ public class AuthenticationFilter implements Filter {
                     System.out.println(adminIDValue);
                     session.setAttribute("adminID", adminIDValue);
                     break;
+                }
+              }
+            }
+            request.setAttribute("isLoggedIn", true);
+          } else {
+            // Account is of User type: cannot access Admin page
+            // Or if auth fails, also redirects to home page
+            httpResponse.sendRedirect("/");
+            return;
+          }
+        } else if (path.startsWith("/promotionManager")) {
+          // Destination page is admin page
+          if (getAuthStatus(httpRequest) == 3) {
+            // Account is of Admin type, proceeds to admin page
+            HttpSession session = httpRequest.getSession();
+            boolean hasPromotionManagerSession = (session.getAttribute("promotionManager") != null
+                    && !(((String) session.getAttribute("promotionManager")).isEmpty()));
+            if (hasPromotionManagerSession) {
+              String username = (String) session.getAttribute("promotionManager");
+              request.setAttribute("promotionManagerName", URLDecoder.decode(username, "UTF-8"));
+            } else {
+              Cookie[] cookies = httpRequest.getCookies();
+              Cookie promotionManager = null;
+
+              for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("promotionManager")) {
+                  promotionManager = cookie;
+                  String promotionManagerName = cookie.getValue();
+                  request.setAttribute("promotionManagerName", URLDecoder.decode(promotionManagerName, "UTF-8"));
+                  break;
                 }
               }
             }
@@ -242,6 +311,10 @@ public class AuthenticationFilter implements Filter {
             // Account is of Admin type, cannot access user pages
             httpResponse.sendRedirect("/admin");
             return;
+          } else if (getAuthStatus(httpRequest) == 3) {
+            // Account is of Admin type, cannot access user pages
+            httpResponse.sendRedirect("/promotionManager");
+            return;
           } else if (getAuthStatus(httpRequest) == 4) {
             // Account is of Admin type, cannot access user pages
             httpResponse.sendRedirect("/staff");
@@ -271,6 +344,13 @@ public class AuthenticationFilter implements Filter {
 
 
       HttpSession session = httpRequest.getSession();
+      // // Process the default active tab upon admin page load,
+      // // depending on the user's previous action on which tab page
+      // if (session != null && session.getAttribute("tabID") != null) {
+      //   int tabID = (Integer) session.getAttribute("tabID");
+      //   session.removeAttribute("tabID");
+      //   request.setAttribute("tabID", tabID);
+      // }
 
       // Process the special case of order history, to display the modal showing order history
       if (session != null && session.getAttribute("orderHistory") != null) {
@@ -425,14 +505,18 @@ public class AuthenticationFilter implements Filter {
             && !(((String) session.getAttribute("user")).isEmpty()));
     boolean hasAdminSession = (session.getAttribute("admin") != null
             && !(((String) session.getAttribute("admin")).isEmpty()));
+    boolean hasPromotionManagerSession = (session.getAttribute("promotionManager") != null
+            && !(((String) session.getAttribute("promotionManager")).isEmpty()));
     boolean hasStaffSession = (session.getAttribute("staff") != null
             && !(((String) session.getAttribute("staff")).isEmpty()));
     if (hasUserSession) {
       authStatus = 1;
     } else if (hasAdminSession) {
       authStatus = 2;
-    } else if (hasStaffSession) {
+    } else if (hasPromotionManagerSession) {
       authStatus = 3;
+    } else if (hasStaffSession) {
+      authStatus = 4;
     } else if (cookies != null) {
       for (Cookie cookie : cookies) {
         if (cookie.getName().equals("user")) {
@@ -441,8 +525,11 @@ public class AuthenticationFilter implements Filter {
         } else if (cookie.getName().equals("admin")) {
           authStatus = 2;
           break;
-        } else if (cookie.getName().equals("staff")) {
+        } else if (cookie.getName().equals("promotionManager")) {
           authStatus = 3;
+          break;
+        } else if (cookie.getName().equals("staff")) {
+          authStatus = 4;
           break;
         }
       }

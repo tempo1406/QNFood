@@ -2,6 +2,29 @@
 <%@ include file="../imports/base.jspf" %>
 <%@ page pageEncoding="UTF-8" %>
 
+<nav class="navbar navbar-expand-lg bg-secondary30 navbar-light d-none d-lg-block">
+    <div class="container text-light">
+        <div class="w-100 d-flex justify-content-between">
+            <div class="d-flex align-items-center">
+                <i class="ph-fill ph-envelope mx-2"></i>
+                <a href="mailto:qnfood.shop@gmail.com" class="navbar-sm-brand text-light text-decoration-none">
+                    qnfood.shop@gmail.com
+                </a>
+            </div>
+            <div class="flex-grow-1"></div>
+
+            <!-- Language button -->
+            <%@ include file="../../hyperfeat/langviewbutton.jspf" %>
+
+            <div class="d-flex align-items-center">
+                <i class="ph-fill ph-phone mx-2"></i>
+                <a href="tel:0823-832-767" class="navbar-sm-brand text-light text-decoration-none">
+                    0823-832-767
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
 <!-- MAIN NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-light shadow bg-light sticky-top"
      data-navbar-on-scroll="data-navbar-on-scroll">

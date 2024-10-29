@@ -41,51 +41,6 @@ import org.json.JSONObject;
 
 public class AdminController extends HttpServlet {
     
-    // send request function
-    private String sendGetRequest(String apiURL) {
-        try {
-            URL url = new URL(apiURL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-            connection.setRequestMethod("GET");
-            int responseCode = connection.getResponseCode();
-
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-
-                // Parse the JSON array response
-                JSONArray jsonArray = new JSONArray(response.toString());
-                
-                // Check if the array is not empty
-                if (jsonArray.length() > 0) {
-                    // Get the first object from the array
-                    JSONObject jsonObject = jsonArray.getJSONObject(0);
-                    // Extract payment_time from the object
-                    String paymentTime = jsonObject.getString("payment_time");
-                    return paymentTime;
-                } else {
-                    // Handle empty JSON array (no elements found)
-                    return null;
-                }
-                
-                
-            } else {
-                // Xử lý trường hợp không thành công khi gọi API
-                return null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-    
     // get list of food, voucher, user, role, order in database
     private void doGetList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -158,15 +113,6 @@ public class AdminController extends HttpServlet {
         for (int i = 0; i < orderList.size(); i++) {
             String Orderfirstname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getFirstName();
             String Orderlastname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getLastName();
-            String payment_status = "Chưa thanh toán";
-            // Tạo URL cho việc gọi API
-            String apiURL = "http://psql-server:8001/check_order_payment/" + orderList.get(i).getOrderID();
-            // Thực hiện HTTP request để lấy vnpay_payment_url            
-            String payment_time = sendGetRequest(apiURL);
-            if (payment_time != null) {
-                payment_status = "Đã thanh toán";
-            }
-            orderList.get(i).setPayment_status(payment_status);
             orderList.get(i).setFirstname(Orderfirstname);
             orderList.get(i).setLastname(Orderlastname);
         }

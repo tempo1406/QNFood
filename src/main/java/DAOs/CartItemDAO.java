@@ -13,6 +13,10 @@ import java.util.logging.Logger;
 import Models.CartItem;
 import Models.Food;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -46,7 +50,7 @@ public class CartItemDAO {
             ps = conn.prepareStatement("select * from CartItem where cart_item_id = ?");
             ps.setInt(1, cartItemID);
             rs = ps.executeQuery();
-             FoodDAO fooddao = new FoodDAO();
+            FoodDAO fooddao = new FoodDAO();
             if (rs.next()) {
                 Food food = fooddao.getFood(rs.getShort("food_id"));
                 cartItem = new CartItem(rs.getInt("cart_item_id"), rs.getInt("cart_id"), food, rs.getInt("food_quantity"));
@@ -67,13 +71,13 @@ public class CartItemDAO {
             ps.setShort(2, food.getFoodID());
             ps.setBigDecimal(3, food.getFoodPrice());
             ps.setInt(4, cartItem.getFoodQuantity());
-            
-            System.out.println("carID"+cartItem.getCartID());
-            System.out.println("foodID"+food.getFoodID());
-            System.out.println("fpoodprice"+food.getFoodPrice());
-            System.out.println("foodquan"+cartItem.getFoodQuantity());
+
+            System.out.println("carID" + cartItem.getCartID());
+            System.out.println("foodID" + food.getFoodID());
+            System.out.println("fpoodprice" + food.getFoodPrice());
+            System.out.println("foodquan" + cartItem.getFoodQuantity());
             result = ps.executeUpdate();
-            
+
         } catch (SQLException ex) {
             Logger.getLogger(CartItemDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -127,6 +131,42 @@ public class CartItemDAO {
             Logger.getLogger(CustomerDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return cartItem;
+    }
+
+    public List<Map<String, Object>> getTop5MostPurchasedItems() {
+        List<Map<String, Object>> topFoods = new ArrayList<>();
+        String sql = "SELECT TOP 5 f.food_name, SUM(ci.food_quantity) AS total_quantity, SUM(ci.food_quantity * ci.food_price) AS total_price "
+                + "FROM CartItem ci "
+                + "JOIN Food f ON ci.food_id = f.food_id "
+                + "GROUP BY f.food_name "
+                + "ORDER BY total_quantity DESC";
+
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> foodData = new HashMap<>();
+                foodData.put("food_name", rs.getString("food_name"));
+                foodData.put("total_quantity", rs.getInt("total_quantity"));
+                foodData.put("total_price", rs.getBigDecimal("total_price")); // Lưu tổng tiền
+                topFoods.add(foodData);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(CartItemDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(CartItemDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return topFoods;
     }
 
 }

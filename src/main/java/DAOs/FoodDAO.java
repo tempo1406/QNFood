@@ -217,7 +217,7 @@ public class FoodDAO {
             if (resultSet.next()) {
                 int currentLimit = resultSet.getShort("food_limit");
                 int newLimit = (int) (currentLimit - quantity);
-                if (newLimit < 0){
+                if (newLimit < 0) {
                     newLimit = 0;
                 }
                 // Update the food_limit with the new value
@@ -330,4 +330,60 @@ public class FoodDAO {
         }
         return list;
     }
+
+    public int getTotalFoodCount() {
+        String sql = "SELECT COUNT(*) AS total FROM Food WHERE food_status = 1";
+        int totalCount = 0;
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                totalCount = rs.getInt("total");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(FoodDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                Logger.getLogger(FoodDAO.class.getName()).log(Level.SEVERE, null, e);
+            }
+        }
+        return totalCount;
+    }
+
+    public int CountTotalFoods() {
+        String sql = "SELECT COUNT(*) AS total FROM Food"; // Đặt alias cho COUNT(*)
+        int totalCount = 0;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                totalCount = rs.getInt("total"); // Sử dụng alias để lấy giá trị
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(FoodDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                Logger.getLogger(FoodDAO.class.getName()).log(Level.SEVERE, null, e);
+            }
+        }
+        return totalCount;
+    }
+
 }

@@ -50,7 +50,7 @@
                 <div class="input-group me-md-3 mx-lg-5">
                     <!-- Search by keyword input -->
                     <input class="form-control border border-2 border-primary border-end-0 bg-100" type="search" placeholder="Tìm món ăn"
-                           aria-label="Tìm món ăn" id="search-bar" autocomplete="off" oninput="searchFoodByKeyword()" />
+                           aria-label="Tìm món ăn" id="search-bar" autocomplete="off" oninput="searchFoodByKeyword()" />            
 
                     <!-- Search by keyword button -->
                     <div class="list-group d-none flex-column gap-3 card p-3 rounded-2 overflow-auto shadow search-results w-100" style="position: absolute; top: 50px; max-height: 27rem;" id="search-results-list"></div>

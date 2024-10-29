@@ -411,4 +411,31 @@ public class AccountDAO {
         }
         return rs.next();
     }
+    
+    public int getTotalCustomers() {
+        String sql = "SELECT COUNT(DISTINCT customer_id) AS total FROM Account WHERE customer_id IS NOT NULL";
+        int totalCount = 0;
+        
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                totalCount = rs.getInt("total");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace(); // In ra lỗi nếu có
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException e) {
+                e.printStackTrace(); // In ra lỗi nếu có
+            }
+        }
+        
+        return totalCount;
+    }
 }

@@ -241,4 +241,55 @@ public class VoucherDAO {
         }
         return result;
     }
+    
+     public int getTotalVoucherCount() {
+        String sql = "SELECT COUNT(*) AS total FROM Voucher WHERE voucher_status = 1"; // Trạng thái = 1
+        int totalCount = 0;
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                totalCount = rs.getInt("total");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(VoucherDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+            } catch (SQLException e) {
+                Logger.getLogger(VoucherDAO.class.getName()).log(Level.SEVERE, null, e);
+            }
+        }
+        return totalCount;
+    }
+     
+     public int CountTotalVoucher() {
+        String sql = "SELECT COUNT(*) AS total FROM Voucher"; 
+        int totalCount = 0;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                totalCount = rs.getInt("total"); 
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(FoodDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                Logger.getLogger(FoodDAO.class.getName()).log(Level.SEVERE, null, e);
+            }
+        }
+        return totalCount;
+    }
 }

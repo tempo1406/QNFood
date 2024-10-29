@@ -380,7 +380,7 @@ public class OrderDAO {
     public int deleteMultiple(List<Integer> orderIDs) {
         if (orderIDs == null || orderIDs.isEmpty()) {
             return 0;
-        }  
+        }
 
         int result = 0;
         try {
@@ -479,6 +479,63 @@ public class OrderDAO {
             }
         }
         return result;
+    }
+
+    public int getTotalOrderCount() {
+        String sql = "SELECT COUNT(*) AS total FROM [Order] WHERE order_id IN (1,2,3,4,5)";
+        int totalCount = 0;
+        try {
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                totalCount = rs.getInt("total");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, e);
+            }
+        }
+        return totalCount;
+    }
+
+    public List<String> getOrdersWithStatusId4() {
+        List<String> orderDetails = new ArrayList<>();
+        String sql = "SELECT contact_phone, order_time FROM [Order] WHERE order_status_id = ?";
+
+        try {
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, 4); // Thiết lập tham số để lọc theo order_status_id
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String contactPhone = rs.getString("contact_phone");
+                String orderTime = rs.getTimestamp("order_time").toString(); 
+                orderDetails.add("Phone: " + contactPhone + ", Order Time: " + orderTime);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error fetching orders with status ID 4", ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return orderDetails;
     }
 
 }

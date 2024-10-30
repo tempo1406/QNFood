@@ -22,7 +22,7 @@
         int totalOrder = orderDAO.getTotalOrderCount();
         int totalF = foodDAO.CountTotalFoods();
         int totalV = voucherDAO.CountTotalVoucher();
-        DecimalFormat decimalFormat = new DecimalFormat("#,##0"); // Định dạng số, không có phần thập phân
+        DecimalFormat decimalFormat = new DecimalFormat("#,##0"); 
     %>
     <%--Dynamically generates appropriate greeting based on time of day--%> <%
         java.util.Calendar cal = java.util.Calendar.getInstance();
@@ -41,7 +41,7 @@
             greeting = "Chào buổi tối";
         }%>
 
-    <p class="fw-bolder fs-3 mb-4"><%= greeting%>, ${adminName}!</p>
+    <p class="fw-bolder fs-3 mb-4"><%= greeting%>, ${StaffName}!</p>
     <!-- Content Row -->
     <div class="row">
         <div class="col-xl-6 col-md-6 mb-4">

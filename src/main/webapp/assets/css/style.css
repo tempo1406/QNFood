@@ -15,6 +15,11 @@
     display: contents;
 }
 
+.search-results .addToCartBtn,
+.search-results button[disabled] {
+    display: none;
+}
+
 /* DataTables custom styling */
 td.highlight {
     background-color: whitesmoke !important;
@@ -25,10 +30,10 @@ td.highlight {
 }
 
 .chart-container {
-  position: relative;
-  margin: auto;
-  height: 100%;
-  width: 99%; /* 100% breaks the chart responsiveness*/
+    position: relative;
+    margin: auto;
+    height: 100%;
+    width: 99%; /* 100% breaks the chart responsiveness*/
 }
 
 

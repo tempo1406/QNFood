@@ -1,21 +1,24 @@
-<%-- any content can be specified here e.g.: --%>
 <%@ page pageEncoding="UTF-8" %>
-<div class="modal" tabindex="-1" id="update-food-modal">
+<div class="modal fade" tabindex="-1" id="update-food-modal" aria-labelledby="updateFoodModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form class="update-food-form" method="POST" action="/admin">
+            <form id="updateFoodForm" class="needs-validation" method="POST" action="/admin" enctype="multipart/form-data" novalidate>
                 <div class="modal-header">
-                    <h5 class="modal-title">Cập nhật Món</h5>
+                    <h5 class="modal-title" id="updateFoodModalLabel">Cập nhật Món</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body px-5">
-                    <!-- Hidden - Food ID -->
-                    <input type="hidden" id="txtFoodID" name="txtFoodID" value=""/>
+                    <!-- Hidden Fields -->
+                    <input type="hidden" id="txtFoodID" name="txtFoodID">
+                    <input type="hidden" id="currentImageURL" name="currentImageURL">
+                    <input type="hidden" id="btnSubmit" name="btnSubmit" value="SubmitUpdateFood">
+
                     <!-- Food Type -->
                     <div class="mb-3">
-                        <label for="txtFoodTypeID" class="form-label">Loại món</label>
+                        <label for="txtFoodTypeID" class="form-label required">Loại món</label>
                         <select class="form-select" id="txtFoodTypeID" name="txtFoodTypeID" required>
-                            <option value="1" selected>Mì và Bún</option>
+                            <option value="">-- Chọn loại món --</option>
+                            <option value="1">Mì và Bún</option>
                             <option value="2">Bánh và Bánh Mì</option>
                             <option value="3">Hải Sản</option>
                             <option value="4">Món Ăn Truyền Thống</option>
@@ -26,36 +29,58 @@
                             <option value="9">Món Tráng Miệng</option>
                             <option value="10">Đồ uống</option>
                         </select>
+                        <div class="invalid-feedback">Vui lòng chọn loại món</div>
                     </div>
+
                     <!-- Food Name -->
                     <div class="mb-3">
-                        <label for="txtFoodName" class="form-label">Tên món</label>
-                        <input type="text" class="form-control" id="txtFoodName" name="txtFoodName" maxlength="50" required value="">
+                        <label for="txtFoodName" class="form-label required">Tên món</label>
+                        <input type="text" class="form-control" id="txtFoodName" name="txtFoodName" 
+                               maxlength="50" required 
+                               pattern="^[a-zA-Z0-9\sÀ-ỹ]+$"
+                               title="Tên món không được chứa ký tự đặc biệt">
+                        <div class="invalid-feedback">Vui lòng nhập tên món (không chứa ký tự đặc biệt)</div>
                     </div>
-                    <!--Food Description-->
+
+                    <!-- Food Description -->
                     <div class="mb-3">
                         <label for="txtFoodDescription" class="form-label">Mô tả</label>
-                        <textarea  type="text" class="form-control" id="txtFoodDescription" name="txtFoodDescription" maxlength="500" style="min-height: 100px; max-height: 400px;"></textarea>
+                        <textarea class="form-control" id="txtFoodDescription" name="txtFoodDescription" 
+                                  maxlength="500" rows="3"
+                                  style="resize: vertical;"></textarea>
+                        <div class="form-text">Tối đa 500 ký tự</div>
                     </div>
+
                     <!-- Price -->
                     <div class="mb-3">
-                        <label for="txtFoodPrice" class="form-label">Đơn giá</label>
-                        <input type="number" step="1" class="form-control" id="txtFoodPrice" name="txtFoodPrice" min="0" required value="">
+                        <label for="txtFoodPrice" class="form-label required">Đơn giá</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="txtFoodPrice" name="txtFoodPrice" 
+                                   min="0" step="1000" required>
+                            <span class="input-group-text">VNĐ</span>
+                        </div>
+                        <div class="invalid-feedback">Vui lòng nhập đơn giá hợp lệ</div>
                     </div>
-                     <!-- Quantity -->
+
+                    <!-- Quantity -->
                     <div class="mb-3">
-                        <label for="txtFoodQuantity" class="form-label">Số lượng</label>
-                        <input type="number" step="1" class="form-control" id="txtFoodQuantity" name="txtFoodQuantity" min="0" required>
+                        <label for="txtFoodQuantity" class="form-label required">Số lượng</label>
+                        <input type="number" class="form-control" id="txtFoodQuantity" name="txtFoodQuantity" 
+                               min="0" step="1" required>
+                        <div class="invalid-feedback">Vui lòng nhập số lượng hợp lệ</div>
                     </div>
-                    <!--Food Status-->
+
+                    <!-- Status -->
                     <div class="mb-3">
-                        <label for="txtFoodStatus" class="form-label">Trạng thái</label>
+                        <label for="txtFoodStatus" class="form-label required">Trạng thái</label>
                         <select class="form-select" id="txtFoodStatus" name="txtFoodStatus" required>
-                            <option value="1" selected>Còn</option>
-                            <option value="0">Hết</option>
+                            <option value="1">Còn hàng</option>
+                            <option value="0">Hết hàng</option>
                         </select>
+                        <div class="invalid-feedback">Vui lòng chọn trạng thái</div>
                     </div>
-                    <!--Food Rate-->
+
+                    <!-- Rating -->
                     <div class="mb-3">
                         <label for="txtFoodRate" class="form-label">Đánh giá</label>
                         <select class="form-select" id="txtFoodRate" name="txtFoodRate" required>
@@ -64,28 +89,129 @@
                             <option value="2">2 Sao</option>
                             <option value="3">3 Sao</option>
                             <option value="4">4 Sao</option>
-                            <option value="5" selected>5 Sao</option>
+                            <option value="5">5 Sao</option>
                         </select>
                     </div>
-                    <!-- Discount Percentage -->
+
+                    <!-- Discount -->
                     <div class="mb-3">
-                        <label for="txtDiscountPercent" class="form-label">Giảm giá (%)</label>
-                        <input type="number" class="form-control" id="txtDiscountPercent" name="txtDiscountPercent" min="0" max="100" required value="">
+                        <label for="txtDiscountPercent" class="form-label">Giảm giá</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="txtDiscountPercent" name="txtDiscountPercent" 
+                                   min="0" max="100" value="0" required>
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="invalid-feedback">Giảm giá phải từ 0-100%</div>
                     </div>
-                    <!-- Image URL -->
+
+                    <!-- Current Image -->
                     <div class="mb-3">
-                        <label for="txtImageURL" class="form-label">Đường dẫn Hình ảnh</label>
-                        <input type="url" class="form-control" id="txtImageURL" name="txtImageURL" maxlength="255" required placeholder="https://drive.google.com/file/d/<mã hình>/view?usp=drive_link" value="">
+                        <label class="form-label">Ảnh hiện tại</label>
+                        <div class="current-image-container">
+                            <img id="currentFoodImage" src="" alt="Ảnh món ăn hiện tại" 
+                                 class="img-thumbnail" style="max-width: 200px;">
+                        </div>
+                    </div>
+
+                    <!-- New Image Upload -->
+                    <div class="mb-3">
+                        <label for="txtImageURL" class="form-label">Cập nhật ảnh mới</label>
+                        <input type="file" class="form-control" id="txtImageURL" name="txtImageURL" 
+                               accept="image/*">
+                        <div class="form-text">Định dạng: JPG, PNG, GIF. Kích thước tối đa: 5MB</div>
+                        <div class="mt-2" id="imagePreviewContainer" style="display: none;">
+                            <img id="imagePreview" src="" alt="Xem trước ảnh mới" 
+                                 class="img-thumbnail" style="max-width: 200px;">
+                        </div>
                     </div>
                 </div>
+
                 <div class="modal-footer">
-                    <!-- Submit Button -->
-                    <button type="button" class="btn btn-danger btn-cancel" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-success btn-confirm" onclick="validateForm()">Cập nhật</button>
-                    <!-- Hidden Submit Value -->
-                    <input type="hidden" id="btnSubmit" name="btnSubmit" value="SubmitUpdateFood">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .modal-body {
+        max-height: calc(100vh - 210px);
+        overflow-y: auto;
+    }
+</style>
+
+<script>
+// Form validation
+    document.getElementById('updateFoodForm').addEventListener('submit', function (event) {
+        if (!this.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+
+// Image preview functionality
+    function handleImagePreview(input) {
+        const preview = document.getElementById('imagePreview');
+        const container = document.getElementById('imagePreviewContainer');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Kích thước file không được vượt quá 5MB');
+                input.value = '';
+                container.style.display = 'none';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                container.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    document.getElementById('txtImageURL').addEventListener('change', function () {
+        handleImagePreview(this);
+    });
+
+// Price formatting
+    document.getElementById('txtFoodPrice').addEventListener('input', function () {
+        let value = this.value.replace(/\D/g, '');
+        if (value) {
+            value = parseInt(value).toLocaleString('vi-VN');
+            this.value = value;
+        }
+    });
+
+// Initialize form data
+    function initializeFormData(foodData) {
+        // Populate all fields with existing data
+        Object.keys(foodData).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) {
+                element.value = foodData[key];
+            }
+        });
+
+        // Show current image
+        const currentImage = document.getElementById('currentFoodImage');
+        if (foodData.imageURL) {
+            currentImage.src = foodData.imageURL;
+            document.getElementById('currentImageURL').value = foodData.imageURL;
+        }
+    }
+</script>

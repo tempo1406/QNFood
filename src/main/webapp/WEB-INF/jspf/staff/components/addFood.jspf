@@ -3,7 +3,7 @@
 <div class="modal" tabindex="-1" id="add-food-modal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form class="add-food-form" method="POST" action="/staff">
+            <form class="add-food-form" action="/staff" method="post" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm Món</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -24,7 +24,7 @@
                             <option value="9">Món Tráng Miệng</option>
                             <option value="10">Đồ uống</option>
                         </select>
-                    </div>
+                    </div>  
                     <!-- Food Name -->
                     <div class="mb-3">
                         <label for="txtFoodName" class="form-label">Tên món</label>
@@ -45,7 +45,7 @@
                         <label for="txtDiscountPercent" class="form-label">Giảm giá (%)</label>
                         <input type="number" class="form-control" id="txtDiscountPercent" name="txtDiscountPercent" min="0" max="100" required>
                     </div>
-                     <!-- Quantity -->
+                    <!-- Quantity -->
                     <div class="mb-3">
                         <label for="txtFoodQuantity" class="form-label">Số lượng</label>
                         <input type="number" step="1" class="form-control" id="txtFoodQuantity" name="txtFoodQuantity" min="0" required>
@@ -72,7 +72,7 @@
                     <!-- Image URL -->
                     <div class="mb-3">
                         <label for="txtImageURL" class="form-label">Đường dẫn Hình ảnh</label>
-                        <input type="url" class="form-control" id="txtImageURL" name="txtImageURL" maxlength="255" required placeholder="https://drive.google.com/file/d/<mã hình>/view?usp=drive_link">
+                        <input type="file" class="form-control" id="txtImageURL" name="txtImageURL" maxlength="255" required placeholder="https://drive.google.com/file/d/<mã hình>/view?usp=drive_link">
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -22,16 +22,23 @@ import Models.Staff;
 import Models.User;
 import Models.Voucher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,9 +46,10 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+//@WebServlet("/admin")
+@MultipartConfig
 public class AdminController extends HttpServlet {
-    
-    // get list of food, voucher, user, role, order in database
+
     private void doGetList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -53,6 +61,10 @@ public class AdminController extends HttpServlet {
         VoucherDAO voucherDAO = new VoucherDAO();
 
         List<Food> foodList = foodDAO.getAllList();
+
+        // Kiểm tra và xử lý hình ảnh
+        validateFoodImages(request, foodList);
+
         List<Account> userAccountList = accountDAO.getAllUser();
         List<Customer> customerList = customerDAO.getAllCustomer();
         List<Account> accountList = accountDAO.getAllRole();
@@ -106,7 +118,7 @@ public class AdminController extends HttpServlet {
                         break;
                     }
                 }
-            } 
+            }
         }
 
         List<Order> orderList = orderDAO.getAllList();
@@ -124,72 +136,327 @@ public class AdminController extends HttpServlet {
         request.setAttribute("voucherList", voucherList);
         request.getRequestDispatcher("/admin.jsp").forward(request, response);
     }
-    
-    //add food
+
+    private void validateFoodImages(HttpServletRequest request, List<Food> foodList) {
+        try {
+            // Đường dẫn trong webapp (đường dẫn gốc)
+            String webappPath = request.getServletContext().getRealPath("/");
+            String uploadPathWebapp = webappPath + "assets" + File.separator + "img";
+
+            // Đường dẫn thư mục ngoài (đường dẫn mới)
+            String uploadPathExternal = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+
+            // Tạo thư mục nếu chưa tồn tại
+            File uploadDirWebapp = new File(uploadPathWebapp);
+            File uploadDirExternal = new File(uploadPathExternal);
+
+            if (!uploadDirWebapp.exists()) {
+                if (!uploadDirWebapp.mkdirs()) {
+                    System.out.println("Warning: Could not create webapp directory: " + uploadPathWebapp);
+                }
+            }
+
+            if (!uploadDirExternal.exists()) {
+                if (!uploadDirExternal.mkdirs()) {
+                    System.out.println("Warning: Could not create external directory: " + uploadPathExternal);
+                }
+            }
+
+            for (Food food : foodList) {
+                if (food.getImageURL() != null && !food.getImageURL().isEmpty()) {
+                    try {
+                        String fileName = food.getImageURL().substring(food.getImageURL().lastIndexOf("/") + 1);
+
+                        // Kiểm tra file trong thư mục external trước
+                        String fullImagePathExternal = uploadPathExternal + File.separator + fileName;
+                        File imgFileExternal = new File(fullImagePathExternal);
+
+                        // Kiểm tra file trong webapp
+                        String fullImagePathWebapp = uploadPathWebapp + File.separator + fileName;
+                        File imgFileWebapp = new File(fullImagePathWebapp);
+
+                        // Nếu file tồn tại ở external path
+                        if (imgFileExternal.exists()) {
+                            validateImageFile(imgFileExternal, food);
+
+                            // Copy file từ external sang webapp nếu chưa có
+                            if (!imgFileWebapp.exists()) {
+                                Files.copy(imgFileExternal.toPath(), imgFileWebapp.toPath(),
+                                        StandardCopyOption.REPLACE_EXISTING);
+                            }
+                        } // Nếu file chỉ tồn tại ở webapp
+                        else if (imgFileWebapp.exists()) {
+                            validateImageFile(imgFileWebapp, food);
+
+                            // Copy file từ webapp sang external
+                            Files.copy(imgFileWebapp.toPath(), imgFileExternal.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING);
+                        } // Nếu không tìm thấy file ở cả hai nơi
+                        else {
+                            System.out.println("Warning: Image file not found for: " + food.getFoodName());
+                            // Giữ nguyên đường dẫn ảnh trong database
+                            // food.setImageURL("assets/img/default-food-image.jpg"); // Có thể set ảnh mặc định nếu cần
+                        }
+
+                    } catch (Exception e) {
+                        System.out.println("Error processing image for food: " + food.getFoodName());
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error in validateFoodImages");
+            e.printStackTrace();
+        }
+    }
+
+// Phương thức phụ để validate file ảnh
+    private void validateImageFile(File imgFile, Food food) {
+        try {
+            String mimeType = Files.probeContentType(imgFile.toPath());
+            if (mimeType == null || !mimeType.startsWith("image/")) {
+                System.out.println("Warning: Invalid image file type for: " + food.getFoodName());
+            }
+        } catch (IOException e) {
+            System.out.println("Error checking mime type for: " + food.getFoodName());
+            e.printStackTrace();
+        }
+    }
+
     private void doPostAddFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         byte foodTypeID = Byte.parseByte(request.getParameter("txtFoodTypeID"));
         String foodName = request.getParameter("txtFoodName");
-        String foodDescription = (String) request.getParameter("txtFoodDescription");
+        String foodDescription = request.getParameter("txtFoodDescription");
         BigDecimal foodPrice = BigDecimal.valueOf(Double.parseDouble(request.getParameter("txtFoodPrice")));
         byte discountPercent = Byte.parseByte(request.getParameter("txtDiscountPercent"));
         byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
         Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
         byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
-        String imageURL = (String) request.getAttribute("txtImageURL");
+
+        Part filePart = request.getPart("txtImageURL");
+        String imageURL = null;
+        if (filePart != null && filePart.getSize() > 0) {
+            try {
+                String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                // Kiểm tra và làm sạch tên file
+                fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+                // Kiểm tra định dạng file
+                if (!fileName.toLowerCase().endsWith(".jpg")
+                        && !fileName.toLowerCase().endsWith(".jpeg")
+                        && !fileName.toLowerCase().endsWith(".png")) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("toastMessage", "error-invalid-file-type");
+                    response.sendRedirect("/admin");
+                    return;
+                }
+
+                // Thay đổi đường dẫn lưu trữ ảnh
+                String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                File uploadDirFile = new File(uploadDir);
+                if (!uploadDirFile.exists()) {
+                    if (!uploadDirFile.mkdirs()) {
+                        throw new IOException("Không thể tạo thư mục upload");
+                    }
+                }
+
+                String uploadPath = uploadDir + File.separator + fileName;
+
+                // Kiểm tra xem file đã tồn tại chưa
+                File newFile = new File(uploadPath);
+                if (newFile.exists()) {
+                    // Nếu file đã tồn tại, thêm timestamp vào tên file
+                    String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                    String fileExt = fileName.substring(fileName.lastIndexOf('.'));
+                    fileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
+                    uploadPath = uploadDir + File.separator + fileName;
+                }
+
+                // Kiểm tra kích thước file
+                if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                    HttpSession session = request.getSession();
+                    session.setAttribute("toastMessage", "error-file-too-large");
+                    response.sendRedirect("/admin");
+                    return;
+                }
+
+                // Lưu file
+                filePart.write(uploadPath);
+                imageURL = "assets/img/" + fileName;  // Đường dẫn tương đối để lưu vào database
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                HttpSession session = request.getSession();
+                session.setAttribute("toastMessage", "error-upload-failed");
+                response.sendRedirect("/admin");
+                return;
+            }
+        }
+
         FoodDAO foodDAO = new FoodDAO();
         Food food = new Food(foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
         food.setQuantity(foodQuantity);
+
         HttpSession session = request.getSession();
+
+        // Kiểm tra món ăn đã tồn tại
         if (foodDAO.getFood(foodName) != null) {
             session.setAttribute("toastMessage", "error-add-food-existing-food");
             response.sendRedirect("/admin");
             return;
         }
+
         int result = foodDAO.add(food);
-        
+
         if (result >= 1) {
             session.setAttribute("toastMessage", "success-add-food");
-            response.sendRedirect("/admin");
-            return;
         } else {
             session.setAttribute("toastMessage", "error-add-food");
-            response.sendRedirect("/admin");
-            return;
         }
+
+        response.sendRedirect("/admin");
     }
-    
-    // update food
+
     private void doPostUpdateFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Lấy thông tin cơ bản từ form
         short foodID = Short.parseShort(request.getParameter("txtFoodID"));
         byte foodTypeID = Byte.parseByte(request.getParameter("txtFoodTypeID"));
         String foodName = request.getParameter("txtFoodName");
-        String foodDescription = (String) request.getParameter("txtFoodDescription");
+        String foodDescription = request.getParameter("txtFoodDescription");
         BigDecimal foodPrice = BigDecimal.valueOf(Double.parseDouble(request.getParameter("txtFoodPrice")));
-        Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
-        byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
-        byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
         byte discountPercent = Byte.parseByte(request.getParameter("txtDiscountPercent"));
-        String imageURL = (String) request.getAttribute("txtImageURL");
+        byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
+        Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
+        byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
 
         FoodDAO foodDAO = new FoodDAO();
-        Food food = new Food(foodID, foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
-        food.setQuantity(foodQuantity);
-        int result = foodDAO.update(food);
-        HttpSession session = request.getSession();
-        
-        if (result >=1) {
-          session.setAttribute("toastMessage", "success-update-food");
-          response.sendRedirect("/admin");
-          return;
-        } else {
-            session.setAttribute("toastMessage", "error-update-food");
+        Food existingFood = foodDAO.getFood(foodID);
+        String imageURL = existingFood.getImageURL(); // Giữ lại URL ảnh cũ
+
+        // Xử lý file ảnh mới nếu có
+        Part filePart = request.getPart("txtImageURL");
+        if (filePart != null && filePart.getSize() > 0) {
+            try {
+                String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                // Kiểm tra và làm sạch tên file
+                fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+                // Kiểm tra định dạng file
+                if (!fileName.toLowerCase().endsWith(".jpg")
+                        && !fileName.toLowerCase().endsWith(".jpeg")
+                        && !fileName.toLowerCase().endsWith(".png")) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("toastMessage", "error-invalid-file-type");
+                    response.sendRedirect("/admin");
+                    return;
+                }
+
+                // Đường dẫn lưu file trong webapp và external
+                String webappPath = request.getServletContext().getRealPath("/");
+                String uploadDirWebapp = webappPath + "assets" + File.separator + "img";
+                String uploadDirExternal = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+
+                // Tạo thư mục nếu chưa tồn tại
+                createDirectoryIfNotExists(uploadDirWebapp);
+                createDirectoryIfNotExists(uploadDirExternal);
+
+                // Kiểm tra kích thước file
+                if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                    HttpSession session = request.getSession();
+                    session.setAttribute("toastMessage", "error-file-too-large");
+                    response.sendRedirect("/admin");
+                    return;
+                }
+
+                // Xóa file ảnh cũ nếu tồn tại
+                if (imageURL != null && !imageURL.isEmpty()) {
+                    // Xóa file trong webapp
+                    String oldImagePathWebapp = uploadDirWebapp + File.separator
+                            + imageURL.substring(imageURL.lastIndexOf("/") + 1);
+                    deleteFileIfExists(oldImagePathWebapp);
+
+                    // Xóa file trong external
+                    String oldImagePathExternal = uploadDirExternal + File.separator
+                            + imageURL.substring(imageURL.lastIndexOf("/") + 1);
+                    deleteFileIfExists(oldImagePathExternal);
+                }
+
+                // Tạo tên file mới với timestamp nếu cần
+                String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                String fileExt = fileName.substring(fileName.lastIndexOf('.'));
+                String finalFileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
+
+                // Lưu file vào cả hai thư mục
+                String uploadPathWebapp = uploadDirWebapp + File.separator + finalFileName;
+                String uploadPathExternal = uploadDirExternal + File.separator + finalFileName;
+
+                // Lưu file vào webapp
+                filePart.write(uploadPathWebapp);
+
+                // Copy file sang external
+                Files.copy(new File(uploadPathWebapp).toPath(),
+                        new File(uploadPathExternal).toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+
+                imageURL = "assets/img/" + finalFileName;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                HttpSession session = request.getSession();
+                session.setAttribute("toastMessage", "error-upload-failed");
+                response.sendRedirect("/admin");
+                return;
+            }
+        }
+
+        // Kiểm tra trùng tên
+        Food existingFoodWithName = foodDAO.getFood(foodName);
+        if (existingFoodWithName != null && existingFoodWithName.getFoodID() != foodID) {
+            HttpSession session = request.getSession();
+            session.setAttribute("toastMessage", "error-update-food-existing-name");
             response.sendRedirect("/admin");
             return;
         }
+
+        // Cập nhật thông tin food
+        Food updatedFood = new Food(foodName, foodDescription, foodPrice, foodStatus,
+                foodRate, discountPercent, imageURL, foodTypeID);
+        updatedFood.setFoodID(foodID);
+        updatedFood.setQuantity(foodQuantity);
+
+        // Thực hiện cập nhật
+        HttpSession session = request.getSession();
+        int result = foodDAO.update(updatedFood);
+
+        if (result >= 1) {
+            session.setAttribute("toastMessage", "success-update-food");
+        } else {
+            session.setAttribute("toastMessage", "error-update-food");
+        }
+
+        response.sendRedirect("/admin");
     }
-    
+
+// Phương thức phụ trợ để tạo thư mục
+    private void createDirectoryIfNotExists(String directoryPath) throws IOException {
+        File directory = new File(directoryPath);
+        if (!directory.exists()) {
+            if (!directory.mkdirs()) {
+                throw new IOException("Không thể tạo thư mục: " + directoryPath);
+            }
+        }
+    }
+
+// Phương thức phụ trợ để xóa file
+    private void deleteFileIfExists(String filePath) {
+        File file = new File(filePath);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+
     // delete food
     private void doPostDeleteFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -206,9 +473,8 @@ public class AdminController extends HttpServlet {
         // Delete each food item, and count deleted items
         FoodDAO dao = new FoodDAO();
         int result = dao.deleteMultiple(foodIDList);
-        
+
         HttpSession session = request.getSession();
-        
 
         if (result >= 1) {
             session.setAttribute("toastMessage", "success-delete-food");
@@ -220,7 +486,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     //add user
     private void doPostAddUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -244,7 +510,7 @@ public class AdminController extends HttpServlet {
         }
 
         Customer newCustomer = new Customer(firstname, lastname, gender, phoneNumber, address);
-        
+
         CustomerDAO customerDAO = new CustomerDAO();
         int result = customerDAO.add(newCustomer);
 
@@ -252,7 +518,7 @@ public class AdminController extends HttpServlet {
             account.setCustomerID(customerDAO.getLatestCustomer().getCustomerID());
             System.out.println(account.getCustomerID());
             int result1 = accountDAO.add(account);
-            if (result1 >=1) {
+            if (result1 >= 1) {
                 session.setAttribute("toastMessage", "success-add-user");
                 response.sendRedirect("/admin");
                 return;
@@ -268,7 +534,7 @@ public class AdminController extends HttpServlet {
         }
 
     }
-    
+
     //update user
     private void doPostUpdateUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -286,7 +552,7 @@ public class AdminController extends HttpServlet {
         AccountDAO accountDAO = new AccountDAO();
         CustomerDAO customerDAO = new CustomerDAO();
         HttpSession session = request.getSession();
-        
+
         Account account = new Account(username, email, password, "user");
         account.setAccountID(userID);
         Customer customer = new Customer(firstname, lastname, gender, phoneNumber, address);
@@ -311,7 +577,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     //delete user
     private void doPostDeleteUser(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -332,20 +598,19 @@ public class AdminController extends HttpServlet {
             customerIDList.add(Integer.parseInt(customerIDs[i]));
         }
         HttpSession session = request.getSession();
-        
 
         // Delete each food item, and count deleted items
         AccountDAO accountDAO = new AccountDAO();
         int result1 = accountDAO.deleteMultiple(userIDList);
         if (result1 >= 1) {
             session.setAttribute("toastMessage", "success-delete-user");
-            response.sendRedirect("/admin");            
+            response.sendRedirect("/admin");
         } else {
             session.setAttribute("toastMessage", "error-delete-user");
             response.sendRedirect("/admin");
         }
-    }   
-    
+    }
+
     //add role
     private void doPostAddRole(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -362,7 +627,6 @@ public class AdminController extends HttpServlet {
             response.sendRedirect("/admin");
             return;
         }
-        
 
         if (role.equals("staff")) {
             Staff newstaff = new Staff(fullname);
@@ -386,9 +650,9 @@ public class AdminController extends HttpServlet {
                 response.sendRedirect("/admin");
                 return;
             }
-        } 
+        }
     }
-    
+
     // update role
     private void doPostUpdateRole(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -404,7 +668,7 @@ public class AdminController extends HttpServlet {
         Account account = new Account(username, email, password, role);
         account.setAccountID(accountID);
         HttpSession session = request.getSession();
-        
+
         if (role.equals("staff")) {
             Staff updatestaff = new Staff(roleID, fullname);
             StaffDAO staffDAO = new StaffDAO();
@@ -427,9 +691,9 @@ public class AdminController extends HttpServlet {
                 response.sendRedirect("/admin");
                 return;
             }
-        } 
+        }
     }
-    
+
     // delete role
     private void doPostDeleteRole(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -451,7 +715,7 @@ public class AdminController extends HttpServlet {
         for (int i = 0; i < accountIDs.length; i++) {
             accountIDList.add(Integer.parseInt(accountIDs[i]));
         }
-        
+
         List<Byte> StaffIDList = new ArrayList<>();
         List<Byte> ProIDList = new ArrayList<>();
         if (!temp1IDs[0].equals("")) {
@@ -459,7 +723,7 @@ public class AdminController extends HttpServlet {
             for (int i = 0; i < temp1IDs.length; i++) {
                 StaffIDList.add(Byte.parseByte(temp1IDs[i]));
             }
-        } else {            
+        } else {
             for (int i = 0; i < temp2IDs.length; i++) {
                 ProIDList.add(Byte.parseByte(temp2IDs[i]));
             }
@@ -470,13 +734,13 @@ public class AdminController extends HttpServlet {
         int result1 = accountDAO.deleteMultiple(accountIDList);
         int result2 = 0;
         HttpSession session = request.getSession();
-        
+
         if (result1 >= 1) {
             if (StaffIDList.size() != 0) {
                 StaffDAO staffDAO = new StaffDAO();
                 result2 = staffDAO.deleteMultiple(StaffIDList);
 
-            } 
+            }
             if (result2 >= 1) {
                 session.setAttribute("toastMessage", "success-delete-role");
                 response.sendRedirect("/admin");
@@ -489,7 +753,7 @@ public class AdminController extends HttpServlet {
             response.sendRedirect("/admin");
         }
     }
-    
+
     // add voucher
     private void doPostAddVoucher(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -513,7 +777,6 @@ public class AdminController extends HttpServlet {
         }
 
         int result = voucherDAO.add(voucher);
-        
 
         if (result >= 1) {
             session.setAttribute("toastMessage", "success-add-voucher");
@@ -525,7 +788,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     // update voucher
     private void doPostUpdateVoucher(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -539,13 +802,13 @@ public class AdminController extends HttpServlet {
         Timestamp datetime = Timestamp.valueOf(datetimelocal.replace("T", " ") + ":00");
 
         VoucherDAO voucherDAO = new VoucherDAO();
-        
+
         Voucher voucher = new Voucher(voucherName, voucherCode, voucher_discount_percent, voucher_quantity, voucher_status, datetime);
         voucher.setVoucherID(voucherID);
-        
+
         int result = voucherDAO.update(voucher);
         HttpSession session = request.getSession();
-        
+
         if (result >= 1) {
             session.setAttribute("toastMessage", "success-update-voucher");
             response.sendRedirect("/admin");
@@ -556,7 +819,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     // delete voucher
     private void doPostDeleteVoucher(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -574,7 +837,7 @@ public class AdminController extends HttpServlet {
         VoucherDAO dao = new VoucherDAO();
         int result = dao.deleteMultiple(voucherIDList);
         HttpSession session = request.getSession();
-        
+
         // TODO implement a deletion status message after page reload
         // Redirect or forward to another page if necessary
         if (result >= 1) {
@@ -587,7 +850,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     // update order
     private void doPostUpdateOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -623,9 +886,8 @@ public class AdminController extends HttpServlet {
         OrderDAO orderDAO = new OrderDAO();
         Order order = new Order(orderID, orderStatusID, paymentMethodID, phonenumber, address, note, orderTotalPay);
 
-
         int result = orderDAO.updateForAdmin(order);
-        
+
         if (result >= 1) {
             OrderLogDAO logDAO = new OrderLogDAO();
             LocalDateTime currentTime = LocalDateTime.now();
@@ -649,7 +911,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     // delete order 
     private void doPostDeleteOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -668,7 +930,6 @@ public class AdminController extends HttpServlet {
         OrderDAO dao = new OrderDAO();
         int result = dao.deleteMultiple(orderIDList);
 
-        
         // Redirect or forward to another page if necessary
         if (result >= 1) {
             OrderLogDAO logDAO = new OrderLogDAO();
@@ -689,7 +950,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     // update status of list of order to next status
     private void doPostNextOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -708,7 +969,6 @@ public class AdminController extends HttpServlet {
         OrderDAO dao = new OrderDAO();
         int result = dao.changeStatusMultiple(orderIDList);
 
-        
         // Redirect or forward to another page if necessary
         if (result >= 1) {
             OrderLogDAO logDAO = new OrderLogDAO();
@@ -729,7 +989,7 @@ public class AdminController extends HttpServlet {
             return;
         }
     }
-    
+
     // get the history of an order
     private void doGetOrderHistory(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -755,7 +1015,7 @@ public class AdminController extends HttpServlet {
             session.setAttribute("logList", logList);
             session.setAttribute("orderHistory", "orderHistory");
             response.sendRedirect("/admin");
-        }  
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
@@ -774,7 +1034,7 @@ public class AdminController extends HttpServlet {
         String path = request.getRequestURI();
         HttpSession session = request.getSession();
         if (session != null && session.getAttribute("tabID") == null) {
-          session.setAttribute("tabID", 0);
+            session.setAttribute("tabID", 0);
         }
         if (path.endsWith("/admin")) {
             doGetList(request, response);
@@ -822,7 +1082,7 @@ public class AdminController extends HttpServlet {
                     doPostUpdateUser(request, response);
                     break;
                 case "SubmitDeleteUser":
-                  session.setAttribute("tabID", 4);
+                    session.setAttribute("tabID", 4);
                     doPostDeleteUser(request, response);
                     break;
                 case "SubmitAddVoucher":

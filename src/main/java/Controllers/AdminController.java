@@ -26,18 +26,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
 
 public class AdminController extends HttpServlet {
     
@@ -54,7 +49,6 @@ public class AdminController extends HttpServlet {
 
         List<Food> foodList = foodDAO.getAllList();
         List<Account> userAccountList = accountDAO.getAllUser();
-        List<Customer> customerList = customerDAO.getAllCustomer();
         List<Account> accountList = accountDAO.getAllRole();
         List<Staff> StaffList = staffDAO.getAllStaff();
         List<Voucher> voucherList = voucherDAO.getAllList();
@@ -283,7 +277,6 @@ public class AdminController extends HttpServlet {
         String address = request.getParameter("txtAddress");
         String password = (String) request.getAttribute("txtAccountPassword");
 
-        AccountDAO accountDAO = new AccountDAO();
         CustomerDAO customerDAO = new CustomerDAO();
         HttpSession session = request.getSession();
         
@@ -300,8 +293,6 @@ public class AdminController extends HttpServlet {
         }
 
         if (result1 >= 1) {
-            int result = accountDAO.update(account);
-            int result2 = accountDAO.updateCustomerID(account);
             session.setAttribute("toastMessage", "success-update-user");
             response.sendRedirect("/admin");
             return;

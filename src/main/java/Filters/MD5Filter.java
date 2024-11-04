@@ -19,10 +19,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- *
- * @author CE171454 Hua Tien Thanh
- */
 public class MD5Filter implements Filter {
   
   private static final boolean debug = true;

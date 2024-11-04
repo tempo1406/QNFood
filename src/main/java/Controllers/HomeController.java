@@ -17,7 +17,6 @@ import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.Gson;
-import java.io.PrintWriter;
 
 public class HomeController extends HttpServlet {
 

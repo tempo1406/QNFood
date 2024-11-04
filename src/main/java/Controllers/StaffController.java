@@ -13,15 +13,21 @@ import Models.Order;
 import Models.OrderLog;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,6 +35,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+@MultipartConfig
 public class StaffController extends HttpServlet {
 
     // send request function
@@ -83,7 +90,8 @@ public class StaffController extends HttpServlet {
         CustomerDAO customerDAO = new CustomerDAO();
         OrderDAO orderDAO = new OrderDAO();
         List<Order> orderList = orderDAO.getAllList();
-
+        // Kiểm tra và xử lý hình ảnh
+        validateFoodImages(request, foodList);
         for (int i = 0; i < orderList.size(); i++) {
             String Orderfirstname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getFirstName();
             String Orderlastname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getLastName();
@@ -106,67 +114,308 @@ public class StaffController extends HttpServlet {
 
     }
 
+    private void validateFoodImages(HttpServletRequest request, List<Food> foodList) {
+        try {
+            // Đường dẫn trong webapp (đường dẫn gốc)
+            String webappPath = request.getServletContext().getRealPath("/");
+            String uploadPathWebapp = webappPath + "assets" + File.separator + "img";
+
+            // Đường dẫn thư mục ngoài (đường dẫn mới)
+            String uploadPathExternal = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+
+            // Tạo thư mục nếu chưa tồn tại
+            File uploadDirWebapp = new File(uploadPathWebapp);
+            File uploadDirExternal = new File(uploadPathExternal);
+
+            if (!uploadDirWebapp.exists()) {
+                if (!uploadDirWebapp.mkdirs()) {
+                    System.out.println("Warning: Could not create webapp directory: " + uploadPathWebapp);
+                }
+            }
+
+            if (!uploadDirExternal.exists()) {
+                if (!uploadDirExternal.mkdirs()) {
+                    System.out.println("Warning: Could not create external directory: " + uploadPathExternal);
+                }
+            }
+
+            for (Food food : foodList) {
+                if (food.getImageURL() != null && !food.getImageURL().isEmpty()) {
+                    try {
+                        String fileName = food.getImageURL().substring(food.getImageURL().lastIndexOf("/") + 1);
+
+                        // Kiểm tra file trong thư mục external trước
+                        String fullImagePathExternal = uploadPathExternal + File.separator + fileName;
+                        File imgFileExternal = new File(fullImagePathExternal);
+
+                        // Kiểm tra file trong webapp
+                        String fullImagePathWebapp = uploadPathWebapp + File.separator + fileName;
+                        File imgFileWebapp = new File(fullImagePathWebapp);
+
+                        // Nếu file tồn tại ở external path
+                        if (imgFileExternal.exists()) {
+                            validateImageFile(imgFileExternal, food);
+
+                            // Copy file từ external sang webapp nếu chưa có
+                            if (!imgFileWebapp.exists()) {
+                                Files.copy(imgFileExternal.toPath(), imgFileWebapp.toPath(),
+                                        StandardCopyOption.REPLACE_EXISTING);
+                            }
+                        } // Nếu file chỉ tồn tại ở webapp
+                        else if (imgFileWebapp.exists()) {
+                            validateImageFile(imgFileWebapp, food);
+
+                            // Copy file từ webapp sang external
+                            Files.copy(imgFileWebapp.toPath(), imgFileExternal.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING);
+                        } // Nếu không tìm thấy file ở cả hai nơi
+                        else {
+                            System.out.println("Warning: Image file not found for: " + food.getFoodName());
+                            // Giữ nguyên đường dẫn ảnh trong database
+                            // food.setImageURL("assets/img/default-food-image.jpg"); // Có thể set ảnh mặc định nếu cần
+                        }
+
+                    } catch (Exception e) {
+                        System.out.println("Error processing image for food: " + food.getFoodName());
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error in validateFoodImages");
+            e.printStackTrace();
+        }
+    }
+
+    // Phương thức phụ để validate file ảnh
+    private void validateImageFile(File imgFile, Food food) {
+        try {
+            String mimeType = Files.probeContentType(imgFile.toPath());
+            if (mimeType == null || !mimeType.startsWith("image/")) {
+                System.out.println("Warning: Invalid image file type for: " + food.getFoodName());
+            }
+        } catch (IOException e) {
+            System.out.println("Error checking mime type for: " + food.getFoodName());
+            e.printStackTrace();
+        }
+    }
+
     private void doPostAddFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         byte foodTypeID = Byte.parseByte(request.getParameter("txtFoodTypeID"));
         String foodName = request.getParameter("txtFoodName");
-        String foodDescription = (String) request.getParameter("txtFoodDescription");
+        String foodDescription = request.getParameter("txtFoodDescription");
         BigDecimal foodPrice = BigDecimal.valueOf(Double.parseDouble(request.getParameter("txtFoodPrice")));
         byte discountPercent = Byte.parseByte(request.getParameter("txtDiscountPercent"));
-        Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
         byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
+        Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
         byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
-        String imageURL = (String) request.getAttribute("txtImageURL");
-        FoodDAO foodDAO = new FoodDAO();
-        HttpSession session = request.getSession();
 
+        String imageURL = null;
+
+        // Determine if the image is being uploaded or provided via URL
+        String imageOption = request.getParameter("imageOption");
+        if ("upload".equals(imageOption)) {
+            Part filePart = request.getPart("fileUpload");  // Change from "txtImageURL" to "fileUpload"
+            if (filePart != null && filePart.getSize() > 0) {
+                try {
+                    String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                    // Validate and clean file name
+                    fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+                    // Check file format
+                    if (!fileName.toLowerCase().endsWith(".jpg")
+                            && !fileName.toLowerCase().endsWith(".jpeg")
+                            && !fileName.toLowerCase().endsWith(".png")) {
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-invalid-file-type");
+                        response.sendRedirect("/staff");
+                        return;
+                    }
+
+                    // Define upload directory
+                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    File uploadDirFile = new File(uploadDir);
+                    if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
+                        throw new IOException("Cannot create upload directory");
+                    }
+
+                    String uploadPath = uploadDir + File.separator + fileName;
+
+                    // Check if file already exists
+                    File newFile = new File(uploadPath);
+                    if (newFile.exists()) {
+                        // Add timestamp to the filename to avoid collisions
+                        String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                        String fileExt = fileName.substring(fileName.lastIndexOf('.'));
+                        fileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
+                        uploadPath = uploadDir + File.separator + fileName;
+                    }
+
+                    // Check file size
+                    if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-file-too-large");
+                        response.sendRedirect("/staff");
+                        return;
+                    }
+
+                    // Save the file
+                    filePart.write(uploadPath);
+                    imageURL = "assets/img/" + fileName;  // Relative path to save in the database
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    HttpSession session = request.getSession();
+                    session.setAttribute("toastMessage", "error-upload-failed");
+                    response.sendRedirect("/staff");
+                    return;
+                }
+            }
+        } else if ("url".equals(imageOption)) {
+            // If the image is provided via URL, retrieve it from the form
+            imageURL = request.getParameter("txtImageURL");
+            if (imageURL == null || imageURL.isEmpty()) {
+                HttpSession session = request.getSession();
+                session.setAttribute("toastMessage", "error-invalid-url");
+                response.sendRedirect("/staff");
+                return;
+            }
+        }
+
+        FoodDAO foodDAO = new FoodDAO();
         Food food = new Food(foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
         food.setQuantity(foodQuantity);
+
+        HttpSession session = request.getSession();
+
+        // Check if the food item already exists
         if (foodDAO.getFood(foodName) != null) {
             session.setAttribute("toastMessage", "error-add-food-existing-food");
             response.sendRedirect("/staff");
+            return;
         }
 
         int result = foodDAO.add(food);
 
         if (result >= 1) {
             session.setAttribute("toastMessage", "success-add-food");
-            response.sendRedirect("/staff");
-            return;
         } else {
-            session.setAttribute("toastMessage", "error-add-food");  
-            response.sendRedirect("/staff");
-            return;
+            session.setAttribute("toastMessage", "error-add-food");
         }
+
+        response.sendRedirect("/staff");
     }
 
     private void doPostUpdateFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Retrieve food item ID from the request as a short
         short foodID = Short.parseShort(request.getParameter("txtFoodID"));
+
         byte foodTypeID = Byte.parseByte(request.getParameter("txtFoodTypeID"));
         String foodName = request.getParameter("txtFoodName");
-        String foodDescription = (String) request.getParameter("txtFoodDescription");
+        String foodDescription = request.getParameter("txtFoodDescription");
         BigDecimal foodPrice = BigDecimal.valueOf(Double.parseDouble(request.getParameter("txtFoodPrice")));
-        Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
-        byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
-        byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
         byte discountPercent = Byte.parseByte(request.getParameter("txtDiscountPercent"));
-        String imageURL = (String) request.getAttribute("txtImageURL");
+        byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
+        short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
+        byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
+
+        String imageURL = null;
+
+        // Determine if the image is being updated or provided via URL
+        String imageOption = request.getParameter("imageOption");
+        if ("upload".equals(imageOption)) {
+            Part filePart = request.getPart("fileUpload");  // Part name should match the form input name
+            if (filePart != null && filePart.getSize() > 0) {
+                try {
+                    String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                    // Validate and clean file name
+                    fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+                    // Check file format
+                    if (!fileName.toLowerCase().endsWith(".jpg")
+                            && !fileName.toLowerCase().endsWith(".jpeg")
+                            && !fileName.toLowerCase().endsWith(".png")) {
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-invalid-file-type");
+                        response.sendRedirect("/staff");
+                        return;
+                    }
+
+                    // Define upload directory
+                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    File uploadDirFile = new File(uploadDir);
+                    if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
+                        throw new IOException("Cannot create upload directory");
+                    }
+
+                    String uploadPath = uploadDir + File.separator + fileName;
+
+                    // Check if file already exists
+                    File newFile = new File(uploadPath);
+                    if (newFile.exists()) {
+                        // Add timestamp to the filename to avoid collisions
+                        String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                        String fileExt = fileName.substring(fileName.lastIndexOf('.'));
+                        fileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
+                        uploadPath = uploadDir + File.separator + fileName;
+                    }
+
+                    // Check file size
+                    if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-file-too-large");
+                        response.sendRedirect("/staff");
+                        return;
+                    }
+
+                    // Save the file
+                    filePart.write(uploadPath);
+                    imageURL = "assets/img/" + fileName;  // Relative path to save in the database
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    HttpSession session = request.getSession();
+                    session.setAttribute("toastMessage", "error-upload-failed");
+                    response.sendRedirect("/staff");
+                    return;
+                }
+            }
+        } else if ("url".equals(imageOption)) {
+            // If the image is provided via URL, retrieve it from the form
+            imageURL = request.getParameter("txtImageURL");
+            if (imageURL == null || imageURL.isEmpty()) {
+                HttpSession session = request.getSession();
+                session.setAttribute("toastMessage", "error-invalid-url");
+                response.sendRedirect("/staff");
+                return;
+            }
+        }
 
         FoodDAO foodDAO = new FoodDAO();
-        Food food = new Food(foodID, foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
+        Food food = new Food(foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
         food.setQuantity(foodQuantity);
-        int result = foodDAO.update(food);
+        food.setFoodID(foodID);  // Assuming you have a method to set ID for updating
+
         HttpSession session = request.getSession();
-        if (result >= 1) {
-            session.setAttribute("toastMessage", "success-update-food");
-            response.sendRedirect("/staff");
-            return;
-        } else {
-            session.setAttribute("toastMessage", "error-update-food");
-            response.sendRedirect("/staff");
+
+        // Check if the food item exists before updating
+        if (foodDAO.getFood(foodID) == null) {
+            session.setAttribute("toastMessage", "error-update-food-not-found");
+            response.sendRedirect("/admin");
             return;
         }
+
+        int result = foodDAO.update(food); // Assuming the update method returns the number of rows affected
+
+        if (result >= 1) {
+            session.setAttribute("toastMessage", "success-update-food");
+        } else {
+            session.setAttribute("toastMessage", "error-update-food");
+        }
+
+        response.sendRedirect("/admin");
     }
 
     private void doPostDeleteFood(HttpServletRequest request, HttpServletResponse response)
@@ -189,7 +438,7 @@ public class StaffController extends HttpServlet {
             session.setAttribute("toastMessage", "success-delete-food");
             response.sendRedirect("/staff");
         } else {
-            session.setAttribute("toastMessage", "error-delete-food");  
+            session.setAttribute("toastMessage", "error-delete-food");
             response.sendRedirect("/staff");
         }
 
@@ -300,7 +549,7 @@ public class StaffController extends HttpServlet {
         String path = request.getRequestURI();
         HttpSession session = request.getSession();
         if (session != null && session.getAttribute("tabID") == null) {
-          session.setAttribute("tabID", 0);
+            session.setAttribute("tabID", 0);
         }
         if (path.endsWith("/staff")) {
             doGetList(request, response);
@@ -327,28 +576,28 @@ public class StaffController extends HttpServlet {
         HttpSession session = request.getSession();
         if (request.getParameter("btnSubmit") != null) {
             switch (request.getParameter("btnSubmit")) {
-              case "SubmitAddFood":
-                  doPostAddFood(request, response);
-                  session.setAttribute("tabID", 1);
-              break;
-              case "SubmitUpdateFood":
-                  doPostUpdateFood(request, response);
-                  session.setAttribute("tabID", 1);
-                  break;
-              case "SubmitDeleteFood":
-                  doPostDeleteFood(request, response);
-                  session.setAttribute("tabID", 1);
-                  break;
-              case "SubmitUpdateOrder":
-                  session.setAttribute("tabID", 2);
-                  doPostUpdateOrder(request, response);
-                  break;
-              case "SubmitNextOrder":
-                  session.setAttribute("tabID", 2);
-                  doPostNextOrder(request, response);
-                  break;
-              default:
-              break;
+                case "SubmitAddFood":
+                    doPostAddFood(request, response);
+                    session.setAttribute("tabID", 1);
+                    break;
+                case "SubmitUpdateFood":
+                    doPostUpdateFood(request, response);
+                    session.setAttribute("tabID", 1);
+                    break;
+                case "SubmitDeleteFood":
+                    doPostDeleteFood(request, response);
+                    session.setAttribute("tabID", 1);
+                    break;
+                case "SubmitUpdateOrder":
+                    session.setAttribute("tabID", 2);
+                    doPostUpdateOrder(request, response);
+                    break;
+                case "SubmitNextOrder":
+                    session.setAttribute("tabID", 2);
+                    doPostNextOrder(request, response);
+                    break;
+                default:
+                    break;
             }
         }
     }

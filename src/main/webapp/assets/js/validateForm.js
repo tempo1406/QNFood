@@ -34,8 +34,8 @@ function validateForm() {
                 max: 100
             },
             txtImageURL: {
-                required: true,
-                url: true,
+//                required: true,
+//                url: true,
                 maxlength: 500
             }
         },
@@ -118,8 +118,8 @@ function validateForm() {
                 max: 100
             },
             txtImageURL: {
-                required: true,
-                url: true,
+//                required: true,
+//                url: true,
                 maxlength: 500
             }
         },

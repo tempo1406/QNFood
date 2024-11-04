@@ -15,10 +15,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 
-/**
- *
- * @author CE171454 Hua Tien Thanh
- */
 public class GDriveFilter implements Filter {
   
   private static final boolean debug = true;

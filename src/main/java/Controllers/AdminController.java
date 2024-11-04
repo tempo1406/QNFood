@@ -234,61 +234,73 @@ public class AdminController extends HttpServlet {
         Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
         byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
 
-        Part filePart = request.getPart("txtImageURL");
         String imageURL = null;
-        if (filePart != null && filePart.getSize() > 0) {
-            try {
-                String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-                // Kiểm tra và làm sạch tên file
-                fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
 
-                // Kiểm tra định dạng file
-                if (!fileName.toLowerCase().endsWith(".jpg")
-                        && !fileName.toLowerCase().endsWith(".jpeg")
-                        && !fileName.toLowerCase().endsWith(".png")) {
-                    HttpSession session = request.getSession();
-                    session.setAttribute("toastMessage", "error-invalid-file-type");
-                    response.sendRedirect("/admin");
-                    return;
-                }
+        // Determine if the image is being uploaded or provided via URL
+        String imageOption = request.getParameter("imageOption");
+        if ("upload".equals(imageOption)) {
+            Part filePart = request.getPart("fileUpload");  // Change from "txtImageURL" to "fileUpload"
+            if (filePart != null && filePart.getSize() > 0) {
+                try {
+                    String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                    // Validate and clean file name
+                    fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
 
-                // Thay đổi đường dẫn lưu trữ ảnh
-                String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
-                File uploadDirFile = new File(uploadDir);
-                if (!uploadDirFile.exists()) {
-                    if (!uploadDirFile.mkdirs()) {
-                        throw new IOException("Không thể tạo thư mục upload");
+                    // Check file format
+                    if (!fileName.toLowerCase().endsWith(".jpg")
+                            && !fileName.toLowerCase().endsWith(".jpeg")
+                            && !fileName.toLowerCase().endsWith(".png")) {
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-invalid-file-type");
+                        response.sendRedirect("/admin");
+                        return;
                     }
-                }
 
-                String uploadPath = uploadDir + File.separator + fileName;
+                    // Define upload directory
+                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    File uploadDirFile = new File(uploadDir);
+                    if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
+                        throw new IOException("Cannot create upload directory");
+                    }
 
-                // Kiểm tra xem file đã tồn tại chưa
-                File newFile = new File(uploadPath);
-                if (newFile.exists()) {
-                    // Nếu file đã tồn tại, thêm timestamp vào tên file
-                    String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
-                    String fileExt = fileName.substring(fileName.lastIndexOf('.'));
-                    fileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
-                    uploadPath = uploadDir + File.separator + fileName;
-                }
+                    String uploadPath = uploadDir + File.separator + fileName;
 
-                // Kiểm tra kích thước file
-                if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                    // Check if file already exists
+                    File newFile = new File(uploadPath);
+                    if (newFile.exists()) {
+                        // Add timestamp to the filename to avoid collisions
+                        String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                        String fileExt = fileName.substring(fileName.lastIndexOf('.'));
+                        fileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
+                        uploadPath = uploadDir + File.separator + fileName;
+                    }
+
+                    // Check file size
+                    if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-file-too-large");
+                        response.sendRedirect("/admin");
+                        return;
+                    }
+
+                    // Save the file
+                    filePart.write(uploadPath);
+                    imageURL = "assets/img/" + fileName;  // Relative path to save in the database
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                     HttpSession session = request.getSession();
-                    session.setAttribute("toastMessage", "error-file-too-large");
+                    session.setAttribute("toastMessage", "error-upload-failed");
                     response.sendRedirect("/admin");
                     return;
                 }
-
-                // Lưu file
-                filePart.write(uploadPath);
-                imageURL = "assets/img/" + fileName;  // Đường dẫn tương đối để lưu vào database
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+        } else if ("url".equals(imageOption)) {
+            // If the image is provided via URL, retrieve it from the form
+            imageURL = request.getParameter("txtImageURL");
+            if (imageURL == null || imageURL.isEmpty()) {
                 HttpSession session = request.getSession();
-                session.setAttribute("toastMessage", "error-upload-failed");
+                session.setAttribute("toastMessage", "error-invalid-url");
                 response.sendRedirect("/admin");
                 return;
             }
@@ -300,7 +312,7 @@ public class AdminController extends HttpServlet {
 
         HttpSession session = request.getSession();
 
-        // Kiểm tra món ăn đã tồn tại
+        // Check if the food item already exists
         if (foodDAO.getFood(foodName) != null) {
             session.setAttribute("toastMessage", "error-add-food-existing-food");
             response.sendRedirect("/admin");
@@ -320,115 +332,105 @@ public class AdminController extends HttpServlet {
 
     private void doPostUpdateFood(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Lấy thông tin cơ bản từ form
+        // Retrieve food item ID from the request as a short
         short foodID = Short.parseShort(request.getParameter("txtFoodID"));
+
         byte foodTypeID = Byte.parseByte(request.getParameter("txtFoodTypeID"));
         String foodName = request.getParameter("txtFoodName");
         String foodDescription = request.getParameter("txtFoodDescription");
         BigDecimal foodPrice = BigDecimal.valueOf(Double.parseDouble(request.getParameter("txtFoodPrice")));
         byte discountPercent = Byte.parseByte(request.getParameter("txtDiscountPercent"));
         byte foodRate = Byte.parseByte(request.getParameter("txtFoodRate"));
-        Short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
+        short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
         byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
 
-        FoodDAO foodDAO = new FoodDAO();
-        Food existingFood = foodDAO.getFood(foodID);
-        String imageURL = existingFood.getImageURL(); // Giữ lại URL ảnh cũ
+        String imageURL = null;
 
-        // Xử lý file ảnh mới nếu có
-        Part filePart = request.getPart("txtImageURL");
-        if (filePart != null && filePart.getSize() > 0) {
-            try {
-                String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
-                // Kiểm tra và làm sạch tên file
-                fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+        // Determine if the image is being updated or provided via URL
+        String imageOption = request.getParameter("imageOption");
+        if ("upload".equals(imageOption)) {
+            Part filePart = request.getPart("fileUpload");  // Part name should match the form input name
+            if (filePart != null && filePart.getSize() > 0) {
+                try {
+                    String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+                    // Validate and clean file name
+                    fileName = fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
 
-                // Kiểm tra định dạng file
-                if (!fileName.toLowerCase().endsWith(".jpg")
-                        && !fileName.toLowerCase().endsWith(".jpeg")
-                        && !fileName.toLowerCase().endsWith(".png")) {
+                    // Check file format
+                    if (!fileName.toLowerCase().endsWith(".jpg")
+                            && !fileName.toLowerCase().endsWith(".jpeg")
+                            && !fileName.toLowerCase().endsWith(".png")) {
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-invalid-file-type");
+                        response.sendRedirect("/admin");
+                        return;
+                    }
+
+                    // Define upload directory
+                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    File uploadDirFile = new File(uploadDir);
+                    if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
+                        throw new IOException("Cannot create upload directory");
+                    }
+
+                    String uploadPath = uploadDir + File.separator + fileName;
+
+                    // Check if file already exists
+                    File newFile = new File(uploadPath);
+                    if (newFile.exists()) {
+                        // Add timestamp to the filename to avoid collisions
+                        String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                        String fileExt = fileName.substring(fileName.lastIndexOf('.'));
+                        fileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
+                        uploadPath = uploadDir + File.separator + fileName;
+                    }
+
+                    // Check file size
+                    if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                        HttpSession session = request.getSession();
+                        session.setAttribute("toastMessage", "error-file-too-large");
+                        response.sendRedirect("/admin");
+                        return;
+                    }
+
+                    // Save the file
+                    filePart.write(uploadPath);
+                    imageURL = "assets/img/" + fileName;  // Relative path to save in the database
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                     HttpSession session = request.getSession();
-                    session.setAttribute("toastMessage", "error-invalid-file-type");
+                    session.setAttribute("toastMessage", "error-upload-failed");
                     response.sendRedirect("/admin");
                     return;
                 }
-
-                // Đường dẫn lưu file trong webapp và external
-                String webappPath = request.getServletContext().getRealPath("/");
-                String uploadDirWebapp = webappPath + "assets" + File.separator + "img";
-                String uploadDirExternal = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
-
-                // Tạo thư mục nếu chưa tồn tại
-                createDirectoryIfNotExists(uploadDirWebapp);
-                createDirectoryIfNotExists(uploadDirExternal);
-
-                // Kiểm tra kích thước file
-                if (filePart.getSize() > 5 * 1024 * 1024) { // 5MB limit
-                    HttpSession session = request.getSession();
-                    session.setAttribute("toastMessage", "error-file-too-large");
-                    response.sendRedirect("/admin");
-                    return;
-                }
-
-                // Xóa file ảnh cũ nếu tồn tại
-                if (imageURL != null && !imageURL.isEmpty()) {
-                    // Xóa file trong webapp
-                    String oldImagePathWebapp = uploadDirWebapp + File.separator
-                            + imageURL.substring(imageURL.lastIndexOf("/") + 1);
-                    deleteFileIfExists(oldImagePathWebapp);
-
-                    // Xóa file trong external
-                    String oldImagePathExternal = uploadDirExternal + File.separator
-                            + imageURL.substring(imageURL.lastIndexOf("/") + 1);
-                    deleteFileIfExists(oldImagePathExternal);
-                }
-
-                // Tạo tên file mới với timestamp nếu cần
-                String fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
-                String fileExt = fileName.substring(fileName.lastIndexOf('.'));
-                String finalFileName = fileNameWithoutExt + "_" + System.currentTimeMillis() + fileExt;
-
-                // Lưu file vào cả hai thư mục
-                String uploadPathWebapp = uploadDirWebapp + File.separator + finalFileName;
-                String uploadPathExternal = uploadDirExternal + File.separator + finalFileName;
-
-                // Lưu file vào webapp
-                filePart.write(uploadPathWebapp);
-
-                // Copy file sang external
-                Files.copy(new File(uploadPathWebapp).toPath(),
-                        new File(uploadPathExternal).toPath(),
-                        StandardCopyOption.REPLACE_EXISTING);
-
-                imageURL = "assets/img/" + finalFileName;
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+        } else if ("url".equals(imageOption)) {
+            // If the image is provided via URL, retrieve it from the form
+            imageURL = request.getParameter("txtImageURL");
+            if (imageURL == null || imageURL.isEmpty()) {
                 HttpSession session = request.getSession();
-                session.setAttribute("toastMessage", "error-upload-failed");
+                session.setAttribute("toastMessage", "error-invalid-url");
                 response.sendRedirect("/admin");
                 return;
             }
         }
 
-        // Kiểm tra trùng tên
-        Food existingFoodWithName = foodDAO.getFood(foodName);
-        if (existingFoodWithName != null && existingFoodWithName.getFoodID() != foodID) {
-            HttpSession session = request.getSession();
-            session.setAttribute("toastMessage", "error-update-food-existing-name");
+        FoodDAO foodDAO = new FoodDAO();
+        Food food = new Food(foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
+        food.setQuantity(foodQuantity);
+        food.setFoodID(foodID);  // Assuming you have a method to set ID for updating
+
+        HttpSession session = request.getSession();
+
+        // Check if the food item exists before updating
+        if (foodDAO.getFood(foodID) == null) {
+            session.setAttribute("toastMessage", "error-update-food-not-found");
             response.sendRedirect("/admin");
             return;
         }
 
-        // Cập nhật thông tin food
-        Food updatedFood = new Food(foodName, foodDescription, foodPrice, foodStatus,
-                foodRate, discountPercent, imageURL, foodTypeID);
-        updatedFood.setFoodID(foodID);
-        updatedFood.setQuantity(foodQuantity);
-
-        // Thực hiện cập nhật
-        HttpSession session = request.getSession();
-        int result = foodDAO.update(updatedFood);
+        int result = foodDAO.update(food); // Assuming the update method returns the number of rows affected
 
         if (result >= 1) {
             session.setAttribute("toastMessage", "success-update-food");
@@ -437,24 +439,6 @@ public class AdminController extends HttpServlet {
         }
 
         response.sendRedirect("/admin");
-    }
-
-// Phương thức phụ trợ để tạo thư mục
-    private void createDirectoryIfNotExists(String directoryPath) throws IOException {
-        File directory = new File(directoryPath);
-        if (!directory.exists()) {
-            if (!directory.mkdirs()) {
-                throw new IOException("Không thể tạo thư mục: " + directoryPath);
-            }
-        }
-    }
-
-// Phương thức phụ trợ để xóa file
-    private void deleteFileIfExists(String filePath) {
-        File file = new File(filePath);
-        if (file.exists()) {
-            file.delete();
-        }
     }
 
     // delete food

@@ -34,7 +34,7 @@ function validateForm() {
                 max: 100
             },
             txtImageURL: {
-                required: true,
+//                required: true,
 //                url: true,
                 maxlength: 500
             }

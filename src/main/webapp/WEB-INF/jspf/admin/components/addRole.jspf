@@ -24,8 +24,7 @@
                     <div class="mb-3">
                         <label for="txtAccountRole" class="form-label">Role</label>
                         <select class="form-select" id="txtAccountRole" name="txtAccountRole" required>
-                            <option value="staff" selected>Staff</option>
-                            <option value="promotionManager">Promotion Manager</option>
+                            <option value="staff" selected>Staff</option>   
                         </select>
                     </div>
                     <div class="mb-3">

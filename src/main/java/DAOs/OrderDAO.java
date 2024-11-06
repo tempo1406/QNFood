@@ -379,47 +379,62 @@ public class OrderDAO {
 
     public int deleteMultiple(List<Integer> orderIDs) {
         if (orderIDs == null || orderIDs.isEmpty()) {
-            return 0;
+            return 0; // Return 0 if there are no order IDs to delete
         }
 
-        int result = 0;
+        int result = 0; // Initialize result to count successful deletions
         try {
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // Start transaction
 
-            // Use batch processing for better performance
+            // Dùng batch processing để xóa nhanh hơn
             String deleteOrderLogSQL = "DELETE FROM OrderLog WHERE order_id = ?";
             String deleteOrderSQL = "DELETE FROM [Order] WHERE order_id = ?";
+            String deleteCartItemsSQL = "DELETE FROM CartItem WHERE cart_id = ?";
+            String deleteCartSQL = "DELETE FROM Cart WHERE cart_id = ?";
 
-            try (PreparedStatement psOrderLog = conn.prepareStatement(deleteOrderLogSQL); PreparedStatement psOrder = conn.prepareStatement(deleteOrderSQL)) {
+            try (PreparedStatement psOrderLog = conn.prepareStatement(deleteOrderLogSQL); PreparedStatement psOrder = conn.prepareStatement(deleteOrderSQL); PreparedStatement psCartItem = conn.prepareStatement(deleteCartItemsSQL); PreparedStatement psCart = conn.prepareStatement(deleteCartSQL)) {
 
                 for (Integer orderID : orderIDs) {
-                    // Delete from OrderLog
+                    // Lấy cart_id từ order
+                    int cartID = getCartIDByOrderID(orderID); // Thêm phương thức này để lấy cart_id
+
+                    // Xóa từ OrderLog
                     psOrderLog.setInt(1, orderID);
                     psOrderLog.addBatch();
 
-                    // Delete from Order
+                    // Xóa từ Order
                     psOrder.setInt(1, orderID);
                     psOrder.addBatch();
+
+                    // Xóa các item trong CartItem
+                    psCartItem.setInt(1, cartID);
+                    psCartItem.addBatch();
+
+                    // Xóa Cart nếu cần thiết
+                    psCart.setInt(1, cartID);
+                    psCart.addBatch();
                 }
 
-                // Execute batches
+                // Thực thi batch
                 psOrderLog.executeBatch();
                 int[] deleteResults = psOrder.executeBatch();
+                psCartItem.executeBatch();
+                psCart.executeBatch();
 
-                // Count successful deletions
+                // Đếm số lần xóa thành công
                 for (int deleteResult : deleteResults) {
                     if (deleteResult > 0) {
-                        result++;
+                        result++; // Increment count for each successful deletion
                     }
                 }
 
-                conn.commit();
+                conn.commit(); // Commit transaction if all deletions succeed
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error in batch deletion", ex);
             try {
                 if (conn != null) {
-                    conn.rollback();
+                    conn.rollback(); // Rollback transaction if an error occurs
                 }
             } catch (SQLException rollbackEx) {
                 Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error during rollback", rollbackEx);
@@ -428,13 +443,29 @@ public class OrderDAO {
         } finally {
             try {
                 if (conn != null) {
-                    conn.setAutoCommit(true);
+                    conn.setAutoCommit(true); // Reset auto-commit
                 }
             } catch (SQLException finalEx) {
                 Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, "Error resetting auto-commit", finalEx);
             }
         }
-        return result;
+
+        return result; // Return the number of successfully deleted orders
+    }
+
+    private int getCartIDByOrderID(int orderID) {
+        int cartID = 0;
+        try {
+            ps = conn.prepareStatement("SELECT cart_id FROM [Order] WHERE order_id = ?");
+            ps.setInt(1, orderID);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                cartID = rs.getInt("cart_id");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return cartID;
     }
 
     public int updateOrderStatus(int order_id) {
@@ -482,7 +513,7 @@ public class OrderDAO {
     }
 
     public int getTotalOrderCount() {
-        String sql = "SELECT COUNT(*) AS total FROM [Order] WHERE order_id IN (1,2,3,4,5)";
+        String sql = "SELECT COUNT(*) AS total FROM [Order] WHERE order_status_id IN (1,2,3,4,5)";
         int totalCount = 0;
         try {
             ps = conn.prepareStatement(sql);
@@ -518,7 +549,7 @@ public class OrderDAO {
 
             while (rs.next()) {
                 String contactPhone = rs.getString("contact_phone");
-                String orderTime = rs.getTimestamp("order_time").toString(); 
+                String orderTime = rs.getTimestamp("order_time").toString();
                 orderDetails.add("Phone: " + contactPhone + ", Order Time: " + orderTime);
             }
         } catch (SQLException ex) {

@@ -92,21 +92,6 @@ public class StaffController extends HttpServlet {
         List<Order> orderList = orderDAO.getAllList();
         // Kiểm tra và xử lý hình ảnh
         validateFoodImages(request, foodList);
-        for (int i = 0; i < orderList.size(); i++) {
-            String Orderfirstname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getFirstName();
-            String Orderlastname = customerDAO.getCustomer(orderList.get(i).getCustomerID()).getLastName();
-            String payment_status = "Chưa thanh toán";
-            // Tạo URL cho việc gọi API
-            String apiURL = "http://psql-server:8001/check_order_payment/" + orderList.get(i).getOrderID();
-            // Thực hiện HTTP request để lấy vnpay_payment_url            
-            String payment_time = sendGetRequest(apiURL);
-            if (payment_time != null) {
-                payment_status = "Đã thanh toán";
-            }
-            orderList.get(i).setPayment_status(payment_status);
-            orderList.get(i).setFirstname(Orderfirstname);
-            orderList.get(i).setLastname(Orderlastname);
-        }
 
         request.setAttribute("foodList", foodList);
         request.setAttribute("orderList", orderList);
@@ -121,7 +106,7 @@ public class StaffController extends HttpServlet {
             String uploadPathWebapp = webappPath + "assets" + File.separator + "img";
 
             // Đường dẫn thư mục ngoài (đường dẫn mới)
-            String uploadPathExternal = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+            String uploadPathExternal = "C:\\Chuyên ngành 5\\SWP391\\QNFood\\src\\main\\webapp\\assets\\img";
 
             // Tạo thư mục nếu chưa tồn tại
             File uploadDirWebapp = new File(uploadPathWebapp);
@@ -234,7 +219,7 @@ public class StaffController extends HttpServlet {
                     }
 
                     // Define upload directory
-                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    String uploadDir = "C:\\Chuyên ngành 5\\SWP391\\QNFood\\src\\main\\webapp\\assets\\img";
                     File uploadDirFile = new File(uploadDir);
                     if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
                         throw new IOException("Cannot create upload directory");
@@ -344,7 +329,7 @@ public class StaffController extends HttpServlet {
                     }
 
                     // Define upload directory
-                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    String uploadDir = "C:\\Chuyên ngành 5\\SWP391\\QNFood\\src\\main\\webapp\\assets\\img";
                     File uploadDirFile = new File(uploadDir);
                     if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
                         throw new IOException("Cannot create upload directory");

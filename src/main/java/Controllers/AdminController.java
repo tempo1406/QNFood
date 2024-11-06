@@ -138,7 +138,7 @@ public class AdminController extends HttpServlet {
             String uploadPathWebapp = webappPath + "assets" + File.separator + "img";
 
             // Đường dẫn thư mục ngoài (đường dẫn mới)
-            String uploadPathExternal = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+            String uploadPathExternal = "C:\\Chuyên ngành 5\\SWP391\\QNFood\\src\\main\\webapp\\assets\\img";
 
             // Tạo thư mục nếu chưa tồn tại
             File uploadDirWebapp = new File(uploadPathWebapp);
@@ -251,7 +251,7 @@ public class AdminController extends HttpServlet {
                     }
 
                     // Define upload directory
-                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    String uploadDir = "C:\\Chuyên ngành 5\\SWP391\\QNFood\\src\\main\\webapp\\assets\\img";
                     File uploadDirFile = new File(uploadDir);
                     if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
                         throw new IOException("Cannot create upload directory");
@@ -361,7 +361,7 @@ public class AdminController extends HttpServlet {
                     }
 
                     // Define upload directory
-                    String uploadDir = "C:\\Users\\USER\\Documents\\data C\\Documents\\NetBeansProjects\\QNFood\\src\\main\\webapp\\assets\\img";
+                    String uploadDir = "C:\\Chuyên ngành 5\\SWP391\\QNFood\\src\\main\\webapp\\assets\\img";
                     File uploadDirFile = new File(uploadDir);
                     if (!uploadDirFile.exists() && !uploadDirFile.mkdirs()) {
                         throw new IOException("Cannot create upload directory");

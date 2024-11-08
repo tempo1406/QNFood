@@ -39,7 +39,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 //@WebServlet("/admin")
 @MultipartConfig
 public class AdminController extends HttpServlet {
@@ -338,7 +337,18 @@ public class AdminController extends HttpServlet {
         short foodQuantity = Short.parseShort(request.getParameter("txtFoodQuantity"));
         byte foodStatus = Byte.parseByte(request.getParameter("txtFoodStatus"));
 
-        String imageURL = null;
+        FoodDAO foodDAO = new FoodDAO();
+        Food existingFood = foodDAO.getFood(foodID); // Retrieve the existing food item from the database
+
+        if (existingFood == null) {
+            HttpSession session = request.getSession();
+            session.setAttribute("toastMessage", "error-update-food-not-found");
+            response.sendRedirect("/admin");
+            return;
+        }
+
+        // Initialize imageURL with the existing value from the database
+        String imageURL = existingFood.getImageURL();
 
         // Determine if the image is being updated or provided via URL
         String imageOption = request.getParameter("imageOption");
@@ -389,7 +399,7 @@ public class AdminController extends HttpServlet {
 
                     // Save the file
                     filePart.write(uploadPath);
-                    imageURL = "assets/img/" + fileName;  // Relative path to save in the database
+                    imageURL = "assets/img/" + fileName;  // Update imageURL with the new file path
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -410,19 +420,11 @@ public class AdminController extends HttpServlet {
             }
         }
 
-        FoodDAO foodDAO = new FoodDAO();
         Food food = new Food(foodName, foodDescription, foodPrice, foodStatus, foodRate, discountPercent, imageURL, foodTypeID);
         food.setQuantity(foodQuantity);
-        food.setFoodID(foodID);  // Assuming you have a method to set ID for updating
+        food.setFoodID(foodID);  // Set ID for updating
 
         HttpSession session = request.getSession();
-
-        // Check if the food item exists before updating
-        if (foodDAO.getFood(foodID) == null) {
-            session.setAttribute("toastMessage", "error-update-food-not-found");
-            response.sendRedirect("/admin");
-            return;
-        }
 
         int result = foodDAO.update(food); // Assuming the update method returns the number of rows affected
 
